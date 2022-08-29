@@ -33,6 +33,8 @@ class Path {
 
     static std::string_view Config();
 
+    static bool IsFile(std::string_view path);
+
   private:
 
     static std::string GetBasePath();

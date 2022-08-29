@@ -21,11 +21,27 @@
 #include <GraphicsTypes.h>
 #include <Sage/Core/Console/VirtualConsole.hpp>
 #include <array>
+#include <string_view>
 
 namespace Sage::Core::Graphics {
 
+struct GraphicsCVarsCollection {
+    Console::CVar bRetryRDInit;
+    Console::CVar iSyncInterval;
+    Console::CVar iResolutionX;
+    Console::CVar iResolutionY;
+    Console::CVar eRenderDevice;
+    Console::CVar eValidationLevel;
+    Console::CVar eFullScreenMode;
+};
+
 struct GraphicsCVars {
+    static constexpr Console::CVar::IntType kMinSyncInterval = 0;
     static constexpr Console::CVar::IntType kMaxSyncInterval = 2;
+    static constexpr Console::CVar::IntType kMinResolutionX  = 0;
+    static constexpr Console::CVar::IntType kMaxResolutionX  = 16384;
+    static constexpr Console::CVar::IntType kMinResolutionY  = 0;
+    static constexpr Console::CVar::IntType kMaxResolutionY  = 16384;
 
     static constexpr std::array<Console::CVar::IntType, 3> kVLValues{
         Diligent::VALIDATION_LEVEL_DISABLED, // Disabled validation
@@ -81,56 +97,9 @@ struct GraphicsCVars {
         nullptr                 // end
     };
 
-    static void Register() {
-        using namespace Sage::Core::Console;
+    static void Register();
 
-        SAGE_REGISTER_CVAR_BOOL("RetryRDInit",
-                                "retry render device initialization in case of failure",
-                                CVar::Persistent | CVar::InitOnly,
-                                true);
-
-        SAGE_REGISTER_CVAR_INT("SyncInterval",
-                               "synchronization (swap) interval",
-                               CVar::Persistent,
-                               1,
-                               0,
-                               kMaxSyncInterval);
-
-        SAGE_REGISTER_CVAR_INT("ResolutionX",
-                               "window resolution x-coord",
-                               CVar::Persistent | CVar::RangeCheck,
-                               0,
-                               0,
-                               16384);
-
-        SAGE_REGISTER_CVAR_INT("ResolutionY",
-                               "window resolution y-coord",
-                               CVar::Persistent | CVar::RangeCheck,
-                               0,
-                               0,
-                               16384);
-
-        SAGE_REGISTER_CVAR_ENUM("RenderDevice",
-                                "render device type",
-                                CVar::Persistent | CVar::RangeCheck,
-                                kRDValues[0],
-                                kRDValues.data(),
-                                kRDNames.data());
-
-        SAGE_REGISTER_CVAR_ENUM("ValidationLevel",
-                                "validation level",
-                                CVar::Volatile | CVar::RangeCheck,
-                                kVLValues[0],
-                                kVLValues.data(),
-                                kVLNames.data());
-
-        SAGE_REGISTER_CVAR_ENUM("FullScreenMode",
-                                "full screen mode",
-                                CVar::Persistent | CVar::RangeCheck,
-                                kFSMValues[0],
-                                kFSMValues.data(),
-                                kFSMNames.data());
-    }
+    static void RegisterVolatileCollection(GraphicsCVarsCollection& collection, std::string_view base);
 };
 
 } // namespace Sage::Core::Graphics

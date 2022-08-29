@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "GraphicsCVars.hpp"
+
 #include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/Console/CVarManager.hpp>
 
@@ -41,7 +43,7 @@ namespace Sage::Core::Graphics {
 /// @brief GraphicsEngine service
 ///
 ///
-class GraphicsContext {
+class GraphicsContext : private GraphicsCVarsCollection {
   public:
 
     static constexpr std::array<float, 4> kClearColor = {0.F, 0.F, 0.F, 1.F}; //!< Default clear color
@@ -132,14 +134,6 @@ class GraphicsContext {
     Diligent::RefCntAutoPtr<Diligent::ISwapChain>                  mSwapchain;
     std::vector<Diligent::RefCntAutoPtr<Diligent::IDeviceContext>> mContexts;
     UInt32                                                         mImmediateContextsCount{};
-
-    Console::CVar bRetryRDInit;
-    Console::CVar iSyncInterval;
-    Console::CVar iResolutionX;
-    Console::CVar iResolutionY;
-    Console::CVar eRenderDevice;
-    Console::CVar eValidationLevel;
-    Console::CVar eFullScreenMode;
 };
 
 } // namespace Sage::Core::Graphics

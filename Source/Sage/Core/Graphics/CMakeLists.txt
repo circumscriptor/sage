@@ -9,10 +9,12 @@
 #
 
 set(SAGE_GRAPHICS_HEADERS
+    "GraphicsCVars.hpp"
     "GraphicsContext.hpp"
 )
 
 set(SAGE_GRAPHICS_SOURCES
+    "GraphicsCVars.cpp"
     "GraphicsContext.cpp"
 )
 

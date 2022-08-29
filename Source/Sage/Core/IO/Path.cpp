@@ -76,4 +76,8 @@ std::string_view Path::Config() {
     return sConfigPath;
 }
 
+bool Path::IsFile(std::string_view path) {
+    return SDL::Get().FileExists(path.data());
+}
+
 } // namespace Sage::Core::IO

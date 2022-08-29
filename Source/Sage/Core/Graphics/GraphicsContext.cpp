@@ -96,6 +96,7 @@ static inline spdlog::level::level_enum DebugMessageSeverityToLogLevel(DEBUG_MES
         case Diligent::DEBUG_MESSAGE_SEVERITY_FATAL_ERROR:
             return spdlog::level::critical;
     }
+    return spdlog::level::debug;
 }
 
 static void DiligentDebugCallback(enum DEBUG_MESSAGE_SEVERITY  severity,
@@ -198,14 +199,8 @@ const char* GraphicsContext::DeviceTypeToString(Diligent::RENDER_DEVICE_TYPE dev
     }
 }
 
-GraphicsContext::GraphicsContext() :
-    bRetryRDInit{SAGE_GET_CVAR("RetryRDInit")},
-    iSyncInterval{SAGE_GET_CVAR("SyncInterval")},
-    iResolutionX{SAGE_GET_CVAR("ResolutionX")},
-    iResolutionY{SAGE_GET_CVAR("ResolutionY")},
-    eRenderDevice{SAGE_GET_CVAR("RenderDevice")},
-    eValidationLevel{SAGE_GET_CVAR("ValidationLevel")},
-    eFullScreenMode{SAGE_GET_CVAR("FullScreenMode")} {
+GraphicsContext::GraphicsContext() {
+    GraphicsCVars::RegisterVolatileCollection(*this, "GC0");
     if (!Initialize()) {
         throw std::exception("failed to initialize graphics context");
     }

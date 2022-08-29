@@ -28,6 +28,11 @@ namespace Sage::Core::Console {
 class IVirtualConsole {
   public:
 
+    enum Operation {
+        kReload,
+        kSave
+    };
+
     SAGE_CLASS_DELETE_COPY_AND_MOVE(IVirtualConsole)
 
     IVirtualConsole() = default;
@@ -42,7 +47,7 @@ class IVirtualConsole {
         return mCVarManager;
     }
 
-    virtual void SyncWithFile() = 0;
+    virtual void SyncWithFile(Operation operation) = 0;
 
     static IVirtualConsole& Get();
 

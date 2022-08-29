@@ -37,10 +37,16 @@ constexpr int kExitSuccess = 0;
 constexpr int kExitFailure = 1;
 
 static bool PreRunOperations() {
+    return true;
+}
+
+} // namespace Sage::Core
+
+extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
     try {
         Sage::Core::SDL::Get();
     } catch (const std::exception& e) {
-        return false;
+        return Sage::Core::kExitFailure;
     }
 
     // Initialize paths
@@ -51,16 +57,9 @@ static bool PreRunOperations() {
     GraphicsCVars::Register();
 
     // Load config
-    IVirtualConsole::Get().SyncWithFile();
+    IVirtualConsole::Get().SyncWithFile(IVirtualConsole::kReload);
 
-    return true;
-}
-
-} // namespace Sage::Core
-
-extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
     auto result = Sage::Core::kExitFailure;
-
     if (Sage::Core::PreRunOperations()) {
         SAGE_LOG_DEBUG("Pre-run operations complete");
 

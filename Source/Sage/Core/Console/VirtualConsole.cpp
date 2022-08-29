@@ -80,13 +80,18 @@ class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTe
         cfg::SimpleCommandTerminal::update();
     }
 
-    void SyncWithFile() override {
-        if (SDL::Get().FileExists(IO::Path::Config().data())) {
-            ExecuteReloadConfig();
-            ExecuteSaveConfig();
+    void SyncWithFile(Operation operation) override {
+        if (!IO::Path::IsFile(IO::Path::Config())) {
+            ExecuteSaveConfig(); // Create file
         } else {
-            ExecuteSaveConfig();
-            ExecuteReloadConfig();
+            switch (operation) {
+                case kReload:
+                    ExecuteReloadConfig();
+                    break;
+                case kSave:
+                    ExecuteSaveConfig();
+                    break;
+            }
         }
     }
 
