@@ -8,19 +8,21 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-
-set(SAGE_HEADERS
-    "Run.hpp"
+set(SAGE_IO_HEADERS
+    "Path.hpp"
 )
 
-set(SAGE_SOURCES
-    "Run.cpp"
+set(SAGE_IO_HEADERS_INTERNAL
+    "Internal/FileIOCallbacksSDL.hpp"
+)
+
+set(SAGE_IO_SOURCES
+    "Path.cpp"
 )
 
 target_sources(SageEngine
     PRIVATE
-        ${SAGE_HEADERS}
-        ${SAGE_SOURCES}
+        ${SAGE_IO_HEADERS}
+        ${SAGE_IO_HEADERS_INTERNAL}
+        ${SAGE_IO_SOURCES}
 )
-
-add_subdirectory(Core)

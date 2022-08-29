@@ -8,19 +8,24 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-
-set(SAGE_HEADERS
-    "Run.hpp"
+set(SAGE_CONSOLE_HEADERS
+    "Log.hpp"
+    "CVar.hpp"
+    "CVarManager.hpp"
+    "VirtualConsole.hpp"
+    "ThirdParty/cfg.hpp"
 )
 
-set(SAGE_SOURCES
-    "Run.cpp"
+set(SAGE_CONSOLE_SOURCES
+    "Log.cpp"
+    "CVar.cpp"
+    "CVarManager.cpp"
+    "VirtualConsole.cpp"
+    "ThirdParty/cfg.cpp"
 )
 
 target_sources(SageEngine
     PRIVATE
-        ${SAGE_HEADERS}
-        ${SAGE_SOURCES}
+        ${SAGE_CONSOLE_HEADERS}
+        ${SAGE_CONSOLE_SOURCES}
 )
-
-add_subdirectory(Core)

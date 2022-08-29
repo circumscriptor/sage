@@ -9,7 +9,7 @@
 //
 
 ///
-/// @file Run.hpp
+/// @file Path.hpp
 /// @brief ...
 ///
 /// @copyright Copyright (c) 2022
@@ -18,13 +18,28 @@
 
 #pragma once
 
-#include <Sage/Core/Exports.hpp>
+#include <string>
 
-///
-/// @brief
-///
-/// @param argc
-/// @param argv
-/// @return int
-///
-SGAPI extern "C" int SageEngineRun(int argc, char** argv);
+namespace Sage::Core::IO {
+
+class Path {
+  public:
+
+    static std::string_view Base() {
+        static const std::string sBasePath = GetBasePath();
+        return sBasePath;
+    }
+
+    static std::string_view User() {
+        static const std::string sUserPath = GetUserPath();
+        return sUserPath;
+    }
+
+  private:
+
+    static std::string GetBasePath();
+
+    static std::string GetUserPath();
+};
+
+} // namespace Sage::Core::IO

@@ -8,19 +8,26 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-
-set(SAGE_HEADERS
-    "Run.hpp"
+set(SAGE_CORE_HEADERS
+    "BasicTypes.hpp"
+    "ClassDefinitions.hpp"
+    "Engine.hpp"
+    "Exports.hpp"
+    "Timer.hpp"
 )
 
-set(SAGE_SOURCES
-    "Run.cpp"
+set(SAGE_CORE_SOURCES
+    "Engine.cpp"
+    "Timer.cpp"
 )
 
 target_sources(SageEngine
     PRIVATE
-        ${SAGE_HEADERS}
-        ${SAGE_SOURCES}
+        ${SAGE_CORE_HEADERS}
+        ${SAGE_CORE_SOURCES}
 )
 
-add_subdirectory(Core)
+add_subdirectory(Console)
+add_subdirectory(Graphics)
+add_subdirectory(Input)
+add_subdirectory(IO)

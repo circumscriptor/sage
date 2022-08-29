@@ -18,36 +18,30 @@
 
 #include "Run.hpp"
 
-#include "Engine.hpp"
-
 #include <SDL2/SDL.h>
-#include <Sage/Console/Log.hpp>
-#include <Sage/Console/VirtualConsole.hpp>
-#include <Sage/Graphics/GraphicsCVars.hpp>
-#include <Sage/IO/Path.hpp>
+#include <Sage/Core/Console/Log.hpp>
+#include <Sage/Core/Console/VirtualConsole.hpp>
+#include <Sage/Core/Engine.hpp>
+#include <Sage/Core/Graphics/GraphicsCVars.hpp>
+#include <Sage/Core/IO/Path.hpp>
+#include <Sage/Core/SDL.hpp>
 
-using namespace Sage;
-using namespace Sage::Console;
-using namespace Sage::Graphics;
-using namespace Sage::IO;
+using namespace Sage::Core;
+using namespace Sage::Core::Console;
+using namespace Sage::Core::Graphics;
+using namespace Sage::Core::IO;
 
-namespace Sage {
+namespace Sage::Core {
 
 constexpr int kExitSuccess = 0;
 constexpr int kExitFailure = 1;
 
 static bool PreRunOperations() {
-    // Initialize SDL
-#ifdef SDL_VIDEO_DRIVER_X11
-    SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11");
-#endif
-
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    try {
+        Sage::Core::SDL::Get();
+    } catch (const std::exception& e) {
         return false;
     }
-
-    // Initialize logs
-    Log::Initialize();
 
     // Initialize paths
     SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
@@ -73,23 +67,20 @@ static void PostRunOperations() {
 
     // Shutdown console
     VirtualConsole::Shutdown();
-
-    // Shutdown logs
-    Log::Shutdown();
 }
 
-} // namespace Sage
+} // namespace Sage::Core
 
 extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
-    auto result = Sage::kExitFailure;
+    auto result = Sage::Core::kExitFailure;
 
-    if (Sage::PreRunOperations()) {
+    if (Sage::Core::PreRunOperations()) {
         SAGE_LOG_DEBUG("Pre-run operations complete");
 
         try {
             SAGE_LOG_DEBUG("Started running engine");
-            Sage::Engine{}.Run();
-            result = Sage::kExitSuccess;
+            Sage::Core::Engine{}.Run();
+            result = Sage::Core::kExitSuccess;
             SAGE_LOG_DEBUG("Finished running engine");
         } catch (const std::exception& e) {
             SAGE_LOG_CRITICAL("Exception: {}, shutting down", e.what());
@@ -100,7 +91,7 @@ extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
         SAGE_LOG_CRITICAL("Pre-run operations failed");
     }
 
-    Sage::PostRunOperations();
+    Sage::Core::PostRunOperations();
     SAGE_LOG_DEBUG("Post-run operations complete");
     return result;
 }
