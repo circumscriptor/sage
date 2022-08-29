@@ -35,7 +35,7 @@ CVarManager::~CVarManager() {
     cfg::CVarManager::destroyInstance(mCVarManager);
 }
 
-CVar CVarManager::Get(CStringType name) {
+CVar CVarManager::Get(CStringType name) const {
     return CVar{mCVarManager->findCVar(name)};
 }
 

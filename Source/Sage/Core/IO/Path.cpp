@@ -18,43 +18,62 @@
 
 #include "Path.hpp"
 
-#include <SDL2/SDL_error.h>
-#include <SDL2/SDL_filesystem.h>
 #include <Sage/Core/Console/Log.hpp>
+#include <Sage/Core/SDL.hpp>
 #include <algorithm>
 
-#ifndef SAGE_ORG_NAME
-    #define SAGE_ORG_NAME "Sage"
+#ifndef SAGE_DEFAULT_BASE_PATH
+    #define SAGE_DEFAULT_BASE_PATH ""
 #endif
 
-#ifndef SAGE_APP_NAME
-    #define SAGE_APP_NAME "Sage"
+#ifndef SAGE_DEFAULT_USER_PATH
+    #define SAGE_DEFAULT_USER_PATH ""
+#endif
+
+#ifndef SAGE_GLOBAL_LOG_FILE_NAME
+    #define SAGE_GLOBAL_LOG_FILE_NAME "sage.log"
+#endif
+
+#ifndef SAGE_GLOBAL_CONFIG_FILE_NAME
+    #define SAGE_GLOBAL_CONFIG_FILE_NAME "sage.cfg"
 #endif
 
 namespace Sage::Core::IO {
 
+// NOTE: Using '/' instead of '\\', because some dependencies cannot handle '\\'
+
 std::string Path::GetBasePath() {
-    char* path = SDL_GetBasePath();
-    if (path == nullptr) {
-        SAGE_LOG_CRITICAL("Failed to retrieve base path, using relative path. Error: {}", SDL_GetError());
-        return "./";
-    }
-    std::string sPath = path;
-    std::replace(sPath.begin(), sPath.end(), '\\', '/');
-    SDL_free(path);
-    return sPath;
+    const char* basePath = SDL::Get().GetBasePath();
+    std::string path     = basePath == nullptr ? SAGE_DEFAULT_BASE_PATH : basePath;
+    std::replace(path.begin(), path.end(), '\\', '/');
+    return path;
 }
 
 std::string Path::GetUserPath() {
-    char* path = SDL_GetPrefPath(SAGE_ORG_NAME, SAGE_APP_NAME);
-    if (path == nullptr) {
-        SAGE_LOG_CRITICAL("Failed to retrieve user path, using relative path. Error: {}", SDL_GetError());
-        return "./";
-    }
-    std::string sPath = path;
-    std::replace(sPath.begin(), sPath.end(), '\\', '/');
-    SDL_free(path);
-    return sPath;
+    const char* userPath = SDL::Get().GetUserPath();
+    std::string path     = userPath == nullptr ? SAGE_DEFAULT_USER_PATH : userPath;
+    std::replace(path.begin(), path.end(), '\\', '/');
+    return path;
+}
+
+std::string_view Path::Base() {
+    static const std::string sBasePath = GetBasePath();
+    return sBasePath;
+}
+
+std::string_view Path::User() {
+    static const std::string sUserPath = GetUserPath();
+    return sUserPath;
+}
+
+std::string_view Path::Log() {
+    static const std::string sLogPath = fmt::format("{}{}", User(), SAGE_GLOBAL_LOG_FILE_NAME);
+    return sLogPath;
+}
+
+std::string_view Path::Config() {
+    static const std::string sConfigPath = fmt::format("{}{}", User(), SAGE_GLOBAL_CONFIG_FILE_NAME);
+    return sConfigPath;
 }
 
 } // namespace Sage::Core::IO

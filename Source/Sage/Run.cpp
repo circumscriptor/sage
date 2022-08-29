@@ -47,26 +47,13 @@ static bool PreRunOperations() {
     SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
     SAGE_LOG_DEBUG("Using user path: {}", Path::User());
 
-    // Initialize console
-    if (!VirtualConsole::Initialize()) {
-        return false;
-    }
-
     // Register CVars
     GraphicsCVars::Register();
 
     // Load config
-    VirtualConsole::LoadConfig();
+    IVirtualConsole::Get().SyncWithFile();
 
     return true;
-}
-
-static void PostRunOperations() {
-    // Shutdown SDL
-    SDL_Quit();
-
-    // Shutdown console
-    VirtualConsole::Shutdown();
 }
 
 } // namespace Sage::Core
@@ -91,7 +78,6 @@ extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
         SAGE_LOG_CRITICAL("Pre-run operations failed");
     }
 
-    Sage::Core::PostRunOperations();
-    SAGE_LOG_DEBUG("Post-run operations complete");
+    SAGE_LOG_DEBUG("Finished");
     return result;
 }

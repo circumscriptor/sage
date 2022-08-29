@@ -71,7 +71,8 @@ class CVar {
         Bool,
         Float,
         String,
-        Enum
+        Enum,
+        Invalid
     };
 
     ///

@@ -12,6 +12,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Sage)
 
+set(CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE INTERNAL "Sage is build only with Release and Debug configs")
+
 #
 # Helper functions
 #

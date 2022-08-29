@@ -12,10 +12,6 @@
     #define SAGE_GLOBAL_LOG_NAME "sage"
 #endif
 
-#ifndef SAGE_GLOBAL_LOG_FILE_NAME
-    #define SAGE_GLOBAL_LOG_FILE_NAME "sage.log"
-#endif
-
 namespace Sage::Core::Console {
 
 Log::Log(std::string name, std::string file, bool isGlobal) : mIsGlobal{isGlobal} {
@@ -28,8 +24,7 @@ Log::Log(std::string name, std::string file, bool isGlobal) : mIsGlobal{isGlobal
     mLogger->set_level(spdlog::level::trace);
 }
 
-Log::Log() :
-    Log(SAGE_GLOBAL_LOG_NAME, fmt::format("{}{}", Sage::Core::IO::Path::User(), SAGE_GLOBAL_LOG_FILE_NAME), true) {
+Log::Log() : Log(SAGE_GLOBAL_LOG_NAME, std::string(IO::Path::Log()), true) {
     spdlog::register_logger(mLogger);
 }
 

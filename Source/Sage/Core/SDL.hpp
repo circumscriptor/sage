@@ -1,8 +1,25 @@
+//
+//  .oooooo..o       .o.         .oooooo.    oooooooooooo
+// d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8
+// Y88bo.          .8"888.     888            888
+//  `"Y8888o.     .8' `888.    888            888oooo8
+//      `"Y88b   .88ooo8888.   888     ooooo  888    "
+// oo     .d8P  .8'     `888.  `88.    .88'   888       o
+// 8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
+//
+
+///
+/// @file SDL.hpp
+/// @brief ...
+///
+/// @copyright Copyright (c) 2022
+///
+///
+
 #pragma once
 
 #include "ClassDefinitions.hpp"
 
-#include <SDL2/SDL.h>
 #include <Sage/Core/Console/Log.hpp>
 #include <algorithm>
 #include <exception>
@@ -20,20 +37,22 @@ class SDL {
         return sSDL;
     }
 
+    [[nodiscard]] const char* GetBasePath();
+
+    [[nodiscard]] const char* GetUserPath();
+
+    bool FileExists(const char* path);
+
   private:
 
-    SDL() {
-#ifdef SDL_VIDEO_DRIVER_X11
-        SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11");
-#endif
-        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-            throw std::exception("failed to initialize SDL");
-        }
-    }
+    SDL();
 
-    ~SDL() {
-        SDL_Quit();
-    }
+    ~SDL();
+
+    char* mBasePath{nullptr};
+    char* mUserPath{nullptr};
+    bool  mBasePathInitialized{false};
+    bool  mUserPathInitialized{false};
 };
 
 } // namespace Sage::Core

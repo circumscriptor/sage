@@ -25,15 +25,13 @@ namespace Sage::Core::IO {
 class Path {
   public:
 
-    static std::string_view Base() {
-        static const std::string sBasePath = GetBasePath();
-        return sBasePath;
-    }
+    static std::string_view Base();
 
-    static std::string_view User() {
-        static const std::string sUserPath = GetUserPath();
-        return sUserPath;
-    }
+    static std::string_view User();
+
+    static std::string_view Log();
+
+    static std::string_view Config();
 
   private:
 

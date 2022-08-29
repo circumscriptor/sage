@@ -37,7 +37,7 @@ namespace Sage::Core::Console {
 ///
 ///
 class CVarManager {
-    friend class VirtualConsole;
+    friend class GlobalVirtualConsole;
 
   public:
 
@@ -79,7 +79,7 @@ class CVarManager {
     /// @param name Name of the variable
     /// @return CVar variable
     ///
-    CVar Get(CStringType name);
+    CVar Get(CStringType name) const;
 
     ///
     /// @brief Register CVar, integer type (signed 64-bit)

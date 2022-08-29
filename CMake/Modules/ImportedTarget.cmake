@@ -107,34 +107,37 @@ function(add_imported_target target_name)
     endif()
     set_property(TARGET ${target_name} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${include_dirs}")
 
+    set(imported_shared_release "${CMAKE_SHARED_LIBRARY_PREFIX}${release_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(imported_shared_debug   "${CMAKE_SHARED_LIBRARY_PREFIX}${debug_name}${CMAKE_SHARED_LIBRARY_SUFFIX}"  )
+    set(imported_static_release "${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(imported_static_debug   "${CMAKE_STATIC_LIBRARY_PREFIX}${debug_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
     if(arg_SHARED)
-        set(imported_file_release "${CMAKE_SHARED_LIBRARY_PREFIX}${release_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-        set(imported_file_debug "${CMAKE_SHARED_LIBRARY_PREFIX}${debug_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-        _check_and_copy(${imported_file_release})
+        _check_and_copy(${imported_shared_release})
 
-        if(NOT imported_file_release STREQUAL imported_file_debug)
-            _check_and_copy(${imported_file_debug})
+        if(NOT imported_shared_release STREQUAL imported_shared_debug)
+            _check_and_copy(${imported_shared_debug})
         endif()
 
         set_target_properties(${target_name}
             PROPERTIES
-                IMPORTED_LOCATION_RELEASE "${DEPS_RUNTIME_DIR}/${imported_file_release}"
-                IMPORTED_LOCATION_DEBUG "${DEPS_RUNTIME_DIR}/${imported_file_debug}"
+                IMPORTED_LOCATION_RELEASE "${DEPS_RUNTIME_DIR}/${imported_shared_release}"
+                IMPORTED_LOCATION_DEBUG "${DEPS_RUNTIME_DIR}/${imported_shared_debug}"
         )
 
         if(WIN32)
             set_target_properties(${target_name}
                 PROPERTIES
-                    IMPORTED_IMPLIB_RELEASE "${DEPS_LIBRARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}"
-                    IMPORTED_IMPLIB_DEBUG "${DEPS_LIBRARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${debug_name}${CMAKE_STATIC_LIBRARY_SUFFIX}"
+                    IMPORTED_IMPLIB_RELEASE "${DEPS_LIBRARY_DIR}/${imported_static_release}"
+                    IMPORTED_IMPLIB_DEBUG "${DEPS_LIBRARY_DIR}/${imported_static_debug}"
             )
         endif()
     elseif(arg_STATIC)
         set_target_properties(${target_name}
             PROPERTIES
-                IMPORTED_LOCATION_RELEASE "${DEPS_LIBRARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}"
-                IMPORTED_LOCATION_DEBUG "${DEPS_LIBRARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${debug_name}${CMAKE_STATIC_LIBRARY_SUFFIX}"
+                IMPORTED_LOCATION_RELEASE "${DEPS_LIBRARY_DIR}/${imported_static_release}"
+                IMPORTED_LOCATION_DEBUG "${DEPS_LIBRARY_DIR}/${imported_static_debug}"
         )
     endif()
 endfunction()

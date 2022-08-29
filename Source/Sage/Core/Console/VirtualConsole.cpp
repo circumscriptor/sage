@@ -19,6 +19,7 @@
 #include "VirtualConsole.hpp"
 
 #include "Log.hpp"
+#include "Sage/Core/SDL.hpp"
 #include "ThirdParty/cfg.hpp"
 
 #include <Sage/Core/IO/Internal/FileIOCallbacksSDL.hpp>
@@ -29,21 +30,31 @@
     #define SAGE_VIRTUAL_CONSOLE_MARK "> "
 #endif
 
-#ifndef SAGE_CONFIG_FILE_NAME
-    #define SAGE_CONFIG_FILE_NAME "sage.cfg"
-#endif
-
 namespace Sage::Core::Console {
 
-class VirtualConsoleImpl : public VirtualConsole, public cfg::SimpleCommandTerminal {
+static void ErrorCallback(const char* message, [[maybe_unused]] void* user) {
+    SAGE_LOG_ERROR(message);
+}
+
+class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTerminal {
   public:
 
-    SAGE_CLASS_DELETE_COPY_AND_MOVE(VirtualConsoleImpl)
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(GlobalVirtualConsole)
 
-    VirtualConsoleImpl(cfg::CommandManager* cmdManager, cfg::CVarManager* cvarManager, const char* newLineMark) :
-        cfg::SimpleCommandTerminal(cmdManager, cvarManager, newLineMark) {}
+    GlobalVirtualConsole() :
+        cfg::SimpleCommandTerminal(CVars().mCmdManager, CVars().mCVarManager, SAGE_VIRTUAL_CONSOLE_MARK) {
+        static IO::Internal::FileIOCallbacksSDL sFileIO;
+        cfg::setErrorCallback(ErrorCallback, nullptr);
+        cfg::setFileIOCallbacks(&sFileIO);
+        cfg::registerDefaultCommands(CVars().mCmdManager, this);
 
-    ~VirtualConsoleImpl() override = default;
+        SAGE_LOG_INFO("Using config file: {}", IO::Path::Config());
+    }
+
+    ~GlobalVirtualConsole() override {
+        cfg::setFileIOCallbacks(nullptr);
+        cfg::setErrorCallback(nullptr, nullptr);
+    }
 
     void print(const char* text) override {
         std::string_view view = text;
@@ -69,8 +80,18 @@ class VirtualConsoleImpl : public VirtualConsole, public cfg::SimpleCommandTermi
         cfg::SimpleCommandTerminal::update();
     }
 
-    void SaveConfig(const std::string& file) override {
-        auto saveConfigCmd = fmt::format("saveConfig \"{}\"", file);
+    void SyncWithFile() override {
+        if (SDL::Get().FileExists(IO::Path::Config().data())) {
+            ExecuteReloadConfig();
+            ExecuteSaveConfig();
+        } else {
+            ExecuteSaveConfig();
+            ExecuteReloadConfig();
+        }
+    }
+
+    void ExecuteSaveConfig() {
+        auto saveConfigCmd = fmt::format("saveConfig \"{}\"", IO::Path::Config());
 
         auto execMode = getCommandExecMode();
         setCommandExecMode(cfg::CommandExecMode::Immediate);
@@ -78,9 +99,8 @@ class VirtualConsoleImpl : public VirtualConsole, public cfg::SimpleCommandTermi
         setCommandExecMode(execMode);
     }
 
-    void ReloadConfig(const std::string& file) override {
-        // TODO: Check files end with cfg or ini
-        auto reloadConfigCmd = fmt::format("reloadConfig \"{}\" -force", file);
+    void ExecuteReloadConfig() {
+        auto reloadConfigCmd = fmt::format("reloadConfig \"{}\" -force", IO::Path::Config());
 
         auto execMode = getCommandExecMode();
         setCommandExecMode(cfg::CommandExecMode::Immediate);
@@ -95,50 +115,9 @@ class VirtualConsoleImpl : public VirtualConsole, public cfg::SimpleCommandTermi
 //
 //
 
-static void ErrorCallback(const char* message, [[maybe_unused]] void* user) {
-    SAGE_LOG_ERROR(message);
-}
-
-std::shared_ptr<CVarManager>    VirtualConsole::sCVarManager;
-std::shared_ptr<VirtualConsole> VirtualConsole::sVirtualConsole;
-
-bool VirtualConsole::Initialize() {
-    static IO::Internal::FileIOCallbacksSDL sFileIO;
-    cfg::setErrorCallback(ErrorCallback, nullptr);
-    cfg::setFileIOCallbacks(&sFileIO);
-
-    sCVarManager = std::make_shared<CVarManager>();
-
-    auto virtualConsoleImpl = std::make_shared<VirtualConsoleImpl>(sCVarManager->mCmdManager,
-                                                                   sCVarManager->mCVarManager,
-                                                                   SAGE_VIRTUAL_CONSOLE_MARK);
-
-    sVirtualConsole = virtualConsoleImpl;
-
-    cfg::registerDefaultCommands(sCVarManager->mCmdManager, virtualConsoleImpl.get());
-    return true;
-}
-
-void VirtualConsole::Shutdown() {
-    sVirtualConsole.reset();
-    sCVarManager.reset();
-
-    cfg::setFileIOCallbacks(nullptr);
-    cfg::setErrorCallback(nullptr, nullptr);
-}
-
-void VirtualConsole::LoadConfig() {
-    std::string configFile = fmt::format("{}{}", Sage::Core::IO::Path::User(), SAGE_CONFIG_FILE_NAME);
-    SAGE_LOG_INFO("Using config file: {}", configFile);
-
-    if (auto* RWops = SDL_RWFromFile(configFile.c_str(), "r"); RWops == nullptr) {
-        SAGE_LOG_INFO("Creating default config file. Path: {}", configFile);
-        Sage::Core::Console::VirtualConsole::Get()->SaveConfig(configFile);
-    } else {
-        SDL_RWclose(RWops);
-    }
-
-    Sage::Core::Console::VirtualConsole::Get()->ReloadConfig(configFile);
+IVirtualConsole& IVirtualConsole::Get() {
+    static GlobalVirtualConsole sVirtualConsole;
+    return sVirtualConsole;
 }
 
 } // namespace Sage::Core::Console

@@ -25,46 +25,38 @@
 
 namespace Sage::Core::Console {
 
-class VirtualConsole {
+class IVirtualConsole {
   public:
 
-    VirtualConsole() = default;
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(IVirtualConsole)
 
-    SAGE_CLASS_DELETE_COPY_AND_MOVE(VirtualConsole)
+    IVirtualConsole() = default;
 
-    virtual ~VirtualConsole() = default;
+    virtual ~IVirtualConsole() = default;
 
-    static bool Initialize();
-
-    static void Shutdown();
-
-    static void LoadConfig();
-
-    static std::shared_ptr<CVarManager> GetCVarManager() {
-        return sCVarManager;
+    [[nodiscard]] CVarManager& CVars() noexcept {
+        return mCVarManager;
     }
 
-    static std::shared_ptr<VirtualConsole> Get() {
-        return sVirtualConsole;
+    [[nodiscard]] const CVarManager& CVars() const noexcept {
+        return mCVarManager;
     }
+
+    virtual void SyncWithFile() = 0;
+
+    static IVirtualConsole& Get();
 
   private:
 
-    virtual void SaveConfig(const std::string& file) = 0;
-
-    virtual void ReloadConfig(const std::string& file) = 0;
-
-    static std::shared_ptr<CVarManager> sCVarManager;
-
-    static std::shared_ptr<VirtualConsole> sVirtualConsole;
+    CVarManager mCVarManager;
 };
 
 } // namespace Sage::Core::Console
 
-#define SAGE_GET_CVAR(Name) Sage::Core::Console::VirtualConsole::GetCVarManager()->Get(Name)
+#define SAGE_GET_CVAR(Name) Sage::Core::Console::IVirtualConsole::Get().CVars().Get(Name)
 
 #define SAGE_REGISTER_CVAR(Type, Name, Description, Flags, ...)                                                        \
-    Sage::Core::Console::VirtualConsole::GetCVarManager()->Register##Type(Name, Description, Flags, __VA_ARGS__)
+    Sage::Core::Console::IVirtualConsole::Get().CVars().Register##Type(Name, Description, Flags, __VA_ARGS__)
 
 #define SAGE_REGISTER_CVAR_INT(Name, Description, Flags, ...)                                                          \
     SAGE_REGISTER_CVAR(Int, Name, Description, Flags, __VA_ARGS__)

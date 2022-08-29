@@ -56,6 +56,7 @@ CVar::Type CVar::GetType() const {
         case cfg::CVar::Type::Enum:
             return CVar::Enum;
     }
+    return CVar::Invalid;
 }
 
 CVar::CStringType CVar::GetTypeString() const {

@@ -18,18 +18,15 @@
 
 #pragma once
 
-#include <Sage/Core/Console/VirtualConsole.hpp>
-
-#ifndef SAGE_MAX_SYNC_INTERVAL
-    #define SAGE_MAX_SYNC_INTERVAL 4
-#endif
-
 #include <GraphicsTypes.h>
+#include <Sage/Core/Console/VirtualConsole.hpp>
 #include <array>
 
 namespace Sage::Core::Graphics {
 
 struct GraphicsCVars {
+    static constexpr Console::CVar::IntType kMaxSyncInterval = 2;
+
     static constexpr std::array<Console::CVar::IntType, 3> kVLValues{
         Diligent::VALIDATION_LEVEL_DISABLED, // Disabled validation
         Diligent::VALIDATION_LEVEL_1,        // Standard validation
@@ -69,16 +66,20 @@ struct GraphicsCVars {
         kFullScreenBorderless
     };
 
-    static constexpr std::array<Console::CVar::IntType, 4> kFSMValues{FullScreenMode::kWindowed,
-                                                                      FullScreenMode::kFullScreen,
-                                                                      FullScreenMode::kFullScreenDesktop,
-                                                                      FullScreenMode::kFullScreenBorderless};
+    static constexpr std::array<Console::CVar::IntType, 4> kFSMValues{
+        FullScreenMode::kWindowed,            // Windowed mode
+        FullScreenMode::kFullScreen,          // Fullscreen mode
+        FullScreenMode::kFullScreenDesktop,   // Fullscreen (desktop) mode
+        FullScreenMode::kFullScreenBorderless // Fullscreen (borderless) mode
+    };
 
-    static constexpr std::array<Console::CVar::CStringType, 5> kFSMNames{"windowed",
-                                                                         "fullScreen",
-                                                                         "fullScreenDesktop",
-                                                                         "fullScreenBorderless",
-                                                                         nullptr};
+    static constexpr std::array<Console::CVar::CStringType, 5> kFSMNames{
+        "windowed",             // Windowed mode
+        "fullScreen",           // Fullscreen mode
+        "fullScreenDesktop",    // Fullscreen (desktop) mode
+        "fullScreenBorderless", // Fullscreen (borderless) mode
+        nullptr                 // end
+    };
 
     static void Register() {
         using namespace Sage::Core::Console;
@@ -93,7 +94,7 @@ struct GraphicsCVars {
                                CVar::Persistent,
                                1,
                                0,
-                               SAGE_MAX_SYNC_INTERVAL);
+                               kMaxSyncInterval);
 
         SAGE_REGISTER_CVAR_INT("ResolutionX",
                                "window resolution x-coord",

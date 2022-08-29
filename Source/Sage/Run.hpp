@@ -27,4 +27,6 @@
 /// @param argv
 /// @return int
 ///
-SGAPI extern "C" int SageEngineRun(int argc, char** argv);
+extern "C" {
+    SGAPI int SageEngineRun(int argc, char** argv);
+}
