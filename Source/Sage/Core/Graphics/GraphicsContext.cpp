@@ -422,7 +422,7 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
             }
 
             mImmediateContextsCount = 1;
-            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts);
+            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts, nullptr);
             factoryOpenGL->CreateDeviceAndSwapChainGL(engineCI, &mDevice, contexts.data(), swapchainDesc, &mSwapchain);
 
             if (!mDevice) {
@@ -459,7 +459,7 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
             }
 
             mImmediateContextsCount = std::max(1U, engineCI.NumImmediateContexts);
-            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts);
+            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts, nullptr);
 
             if (factoryVulkan->CreateDeviceAndContextsVk(engineCI, &mDevice, contexts.data()); !mDevice) {
                 result = Result::kFailedRenderDevice;
@@ -496,7 +496,7 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
             }
 
             mImmediateContextsCount = std::max(1U, engineCI.NumImmediateContexts);
-            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts);
+            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts, nullptr);
 
             if (factoryD3D11->CreateDeviceAndContextsD3D11(engineCI, &mDevice, contexts.data()); !mDevice) {
                 result = Result::kFailedRenderDevice;
@@ -543,7 +543,7 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
             }
 
             mImmediateContextsCount = std::max(1U, engineCI.NumImmediateContexts);
-            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts);
+            contexts.resize(mImmediateContextsCount + engineCI.NumDeferredContexts, nullptr);
 
             if (factoryD3D12->CreateDeviceAndContextsD3D12(engineCI, &mDevice, contexts.data()); !mDevice) {
                 result = Result::kFailedRenderDevice;
@@ -562,7 +562,8 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
                 break;
             }
 
-            return Result::kNoError;
+            result = Result::kNoError;
+            break;
         } break;
 #endif
         default:
@@ -588,13 +589,13 @@ GraphicsContext::Result GraphicsContext::InitializeGraphics(Diligent::RENDER_DEV
             SAGE_LOG_ERROR("Failed to create {} swapchain", DeviceTypeToString(deviceType));
             break;
         case Result::kNoError: {
-            LoadContexts(contexts);
             const auto& version = mDevice->GetDeviceInfo().APIVersion;
             SAGE_LOG_INFO("Initialized graphics: {} {}.{}",
                           DeviceTypeToString(deviceType),
                           version.Major,
                           version.Minor);
             SAGE_LOG_INFO("Initialized adapter: {}", mDevice->GetAdapterInfo().Description);
+            LoadContexts(contexts);
         } break;
     }
     return result;

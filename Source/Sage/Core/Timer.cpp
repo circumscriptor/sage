@@ -25,33 +25,51 @@ namespace Sage::Core {
 
 Timer::Timer() : mLastTime{SDL_GetPerformanceCounter()}, mFrequency{SDL_GetPerformanceFrequency()} {}
 
-void Timer::Update() {
+void Timer::BeginTime() {
     // Compute delta time
-    auto currTime = SDL_GetPerformanceCounter();
-    mDeltaTimeInt = currTime - mLastTime;
+    mRenderBegin  = SDL_GetPerformanceCounter();
+    mDeltaTimeInt = mRenderBegin - mLastTime;
     mDeltaTime    = Float64(mDeltaTimeInt) / Float64(mFrequency);
-    mLastTime     = currTime;
+    mLastTime     = mRenderBegin;
 
     // Per-frame update
     ++mAvgCount;
-    mAvgValue = mAvgValue + (mDeltaTime - mAvgValue) / Float64(mAvgCount);
+    mAvgValue += (mDeltaTime - mAvgValue) / Float64(mAvgCount);
     mTimeSinceAverage += mDeltaTimeInt;
     mMinValue = std::min(mMinValue, mDeltaTime);
     mMaxValue = std::max(mMaxValue, mDeltaTime);
 
     // Per-interval update
     if (mInterval != 0 && mTimeSinceAverage >= (mFrequency / mInterval)) {
-        mAvgDeltaTime = mAvgValue;
-        mMinDeltaTime = mMinValue;
-        mMaxDeltaTime = mMaxValue;
-        mAvgFrameRate = 1.0 / mAvgDeltaTime;
+        mAvgDeltaTime       = mAvgValue;
+        mMinDeltaTime       = mMinValue;
+        mMaxDeltaTime       = mMaxValue;
+        mAvgFrameRate       = 1.0 / mAvgDeltaTime;
+        mRenderAvgDeltaTime = mRenderAvgValue;
+        mRenderMinDeltaTime = mRenderMinValue;
+        mRenderMaxDeltaTime = mRenderMaxValue;
 
         mAvgValue         = mDeltaTime;
         mMinValue         = mDeltaTime;
         mMaxValue         = mDeltaTime;
+        mRenderAvgValue   = mRenderDeltaTime;
+        mRenderMinValue   = mRenderDeltaTime;
+        mRenderMaxValue   = mRenderDeltaTime;
         mAvgCount         = 1;
+        mRenderAvgCount   = 1;
         mTimeSinceAverage = 0;
     }
+}
+
+void Timer::EndTime() {
+    auto renderEnd   = SDL_GetPerformanceCounter();
+    auto timeDiff    = renderEnd - mRenderBegin;
+    mRenderDeltaTime = Float64(timeDiff) / Float64(mFrequency);
+
+    ++mRenderAvgCount;
+    mRenderAvgValue += (mRenderDeltaTime - mRenderAvgValue) / Float64(mRenderAvgCount);
+    mRenderMinValue = std::min(mRenderMinValue, mRenderDeltaTime);
+    mRenderMaxValue = std::max(mRenderMaxValue, mRenderDeltaTime);
 }
 
 } // namespace Sage::Core

@@ -17,13 +17,22 @@ set(DEPS_RUNTIME_DIR "${DEPS_ROOT_DIR}/bin"    )
 #
 # Helper macro
 #
-macro(_check_and_copy file)
-    if(EXISTS "${DEPS_RUNTIME_DIR}/${file}")
-        if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-            file(COPY_FILE "${DEPS_RUNTIME_DIR}/${file}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${file}" ONLY_IF_DIFFERENT)
+macro(_check_and_copy_dll release_file debug_file)
+    if(EXISTS "${DEPS_RUNTIME_DIR}/${release_file}")
+        if(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE)
+            file(COPY_FILE "${DEPS_RUNTIME_DIR}/${release_file}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${release_file}" ONLY_IF_DIFFERENT)
         endif()
     else()
-        message(STATUS "FILE: ${DEPS_RUNTIME_DIR}/${file} NOT FOUND")
+        message(STATUS "FILE: ${DEPS_RUNTIME_DIR}/${release_file} NOT FOUND")
+    endif()
+    if(NOT release_file STREQUAL debug_file)
+        if(EXISTS "${DEPS_RUNTIME_DIR}/${debug_file}")
+            if(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG)
+                file(COPY_FILE "${DEPS_RUNTIME_DIR}/${debug_file}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/${debug_file}" ONLY_IF_DIFFERENT)
+            endif()
+        else()
+            message(STATUS "FILE: ${DEPS_RUNTIME_DIR}/${debug_file} NOT FOUND")
+        endif()
     endif()
 endmacro()
 
@@ -114,11 +123,7 @@ function(add_imported_target target_name)
 
     if(arg_SHARED)
 
-        _check_and_copy(${imported_shared_release})
-
-        if(NOT imported_shared_release STREQUAL imported_shared_debug)
-            _check_and_copy(${imported_shared_debug})
-        endif()
+        _check_and_copy_dll(${imported_shared_release} ${imported_shared_debug})
 
         set_target_properties(${target_name}
             PROPERTIES
@@ -141,3 +146,11 @@ function(add_imported_target target_name)
         )
     endif()
 endfunction()
+
+if(NOT EXISTS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}")
+    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}")
+endif()
+
+if(NOT EXISTS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}")
+    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}")
+endif()

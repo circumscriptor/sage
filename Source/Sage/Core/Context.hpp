@@ -31,7 +31,9 @@ class Context {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(Context)
 
-    explicit Context(std::shared_ptr<Console::IVirtualConsole> console);
+    Context(std::shared_ptr<Console::IVirtualConsole> console);
+
+    Context(Context& base);
 
     ~Context();
 

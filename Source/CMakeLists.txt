@@ -9,11 +9,11 @@
 #
 
 #
-# Sage::Core::Engine
+# Sage::Engine
 #
 
 add_library(SageEngine SHARED)
-add_library(Sage::Core::Engine ALIAS SageEngine)
+add_library(Sage::Engine ALIAS SageEngine)
 
 target_include_directories(SageEngine
     PUBLIC
@@ -47,15 +47,15 @@ target_compile_features(SageEngine
 add_subdirectory(Sage)
 
 #
-# Sage::Core::Launch
+# Sage::Launch
 #
 
 add_executable(SageLaunch "Launch.cpp")
-add_executable(Sage::Core::Launch ALIAS SageLaunch)
+add_executable(Sage::Launch ALIAS SageLaunch)
 
 target_link_libraries(SageLaunch
     PRIVATE
         PlatformDefinitions
-        Sage::Core::Engine 
+        Sage::Engine 
         SDL2::SDL2main
 )

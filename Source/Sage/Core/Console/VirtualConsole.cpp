@@ -19,7 +19,6 @@
 #include "VirtualConsole.hpp"
 
 #include "Log.hpp"
-#include "Sage/Core/SDL.hpp"
 #include "ThirdParty/cfg.hpp"
 
 #include <Sage/Core/IO/Internal/FileIOCallbacksSDL.hpp>

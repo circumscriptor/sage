@@ -18,8 +18,9 @@
 
 #include "Path.hpp"
 
+#include <SDL2/SDL_filesystem.h>
+#include <SDL2/SDL_rwops.h>
 #include <Sage/Core/Console/Log.hpp>
-#include <Sage/Core/SDL.hpp>
 #include <algorithm>
 
 #ifndef SAGE_DEFAULT_BASE_PATH
@@ -38,21 +39,31 @@
     #define SAGE_GLOBAL_CONFIG_FILE_NAME "sage.cfg"
 #endif
 
+#ifndef SAGE_ORG_NAME
+    #define SAGE_ORG_NAME "Sage"
+#endif
+
+#ifndef SAGE_APP_NAME
+    #define SAGE_APP_NAME "Sage"
+#endif
+
 namespace Sage::Core::IO {
 
 // NOTE: Using '/' instead of '\\', because some dependencies cannot handle '\\'
 
 std::string Path::GetBasePath() {
-    const char* basePath = SDL::Get().GetBasePath();
+    char*       basePath = SDL_GetPrefPath(SAGE_ORG_NAME, SAGE_APP_NAME);
     std::string path     = basePath == nullptr ? SAGE_DEFAULT_BASE_PATH : basePath;
     std::replace(path.begin(), path.end(), '\\', '/');
+    SDL_free(basePath);
     return path;
 }
 
 std::string Path::GetUserPath() {
-    const char* userPath = SDL::Get().GetUserPath();
+    char*       userPath = SDL_GetBasePath();
     std::string path     = userPath == nullptr ? SAGE_DEFAULT_USER_PATH : userPath;
     std::replace(path.begin(), path.end(), '\\', '/');
+    SDL_free(userPath);
     return path;
 }
 
@@ -77,7 +88,12 @@ std::string_view Path::Config() {
 }
 
 bool Path::IsFile(std::string_view path) {
-    return SDL::Get().FileExists(path.data());
+    auto* RWops = SDL_RWFromFile(path.data(), "r");
+    if (RWops == nullptr) {
+        return false;
+    }
+    SDL_RWclose(RWops);
+    return true;
 }
 
 } // namespace Sage::Core::IO

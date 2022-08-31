@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/Exports.hpp>
 
 ///
@@ -34,5 +33,5 @@ extern "C" {
 
 #define SAGE_REGISTER_EXPORTS                                                                                          \
     extern "C" {                                                                                                       \
-        SAGE_SYMBOL_EXPORT extern const Sage::Core::UInt32 NvOptimusEnablement = 1;                                    \
+        SAGE_SYMBOL_EXPORT extern const unsigned NvOptimusEnablement = 1;                                              \
     }

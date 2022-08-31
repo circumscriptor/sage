@@ -14,14 +14,12 @@ set(SAGE_CORE_HEADERS
     "Context.hpp"
     "Engine.hpp"
     "Exports.hpp"
-    "SDL.hpp"
     "Timer.hpp"
 )
 
 set(SAGE_CORE_SOURCES
     "Context.cpp"
     "Engine.cpp"
-    "SDL.cpp"
     "Timer.cpp"
 )
 

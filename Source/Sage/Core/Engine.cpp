@@ -21,9 +21,9 @@
 #include <GraphicsTypes.h>
 #include <RmlUi/Core.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_timer.h>
+#include <Sage/Core/Console/Log.hpp>
 #include <Sage/Core/IO/Path.hpp>
-#include <Sage/Core/SDL.hpp>
+#include <iostream>
 #include <optional>
 
 namespace Sage::Core {
@@ -37,6 +37,9 @@ Engine::Engine(std::shared_ptr<IVirtualConsole> console) : mConsole{std::move(co
 
     // Sync
     mConsole->SyncWithFile(IVirtualConsole::kReload);
+
+    // Insert primary context
+    mContexts.emplace_back(mConsole);
 }
 
 Engine::~Engine() = default;
@@ -74,9 +77,12 @@ void Engine::Loop() {
 }
 
 bool Engine::Run() {
-    try {
-        Sage::Core::SDL::Get();
-    } catch (const std::exception& e) {
+    // Initialize SDL
+#ifdef SDL_VIDEO_DRIVER_X11
+    SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11");
+#endif
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        std::cout << "ERROR: " << SDL_GetError() << '\n';
         return false;
     }
 
@@ -84,9 +90,10 @@ bool Engine::Run() {
     SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
     SAGE_LOG_DEBUG("Using user path: {}", Path::User());
 
-    std::optional<Engine> engine = std::nullopt;
-
+    // Create virtual console
     auto console = IVirtualConsole::CreateInstance();
+
+    std::optional<Engine> engine = std::nullopt;
 
     try {
         SAGE_LOG_DEBUG("Starting running engine");
@@ -101,6 +108,9 @@ bool Engine::Run() {
 
     engine->Loop();
     SAGE_LOG_DEBUG("Finishing");
+
+    // Close SDL
+    SDL_Quit();
     return true;
 }
 
