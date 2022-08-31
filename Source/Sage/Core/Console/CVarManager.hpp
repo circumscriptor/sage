@@ -37,7 +37,7 @@ namespace Sage::Core::Console {
 ///
 ///
 class CVarManager {
-    friend class GlobalVirtualConsole;
+    friend class IVirtualConsole;
 
   public:
 
@@ -70,7 +70,7 @@ class CVarManager {
     /// @return true if CVar manager is valid
     ///
     [[nodiscard]] bool IsValid() const {
-        return bool(mCVarManager) && bool(mCmdManager);
+        return mCVarManager != nullptr;
     }
 
     ///
@@ -79,7 +79,7 @@ class CVarManager {
     /// @param name Name of the variable
     /// @return CVar variable
     ///
-    CVar Get(CStringType name) const;
+    CVar Find(CStringType name) const;
 
     ///
     /// @brief Register CVar, integer type (signed 64-bit)
@@ -90,14 +90,16 @@ class CVarManager {
     /// @param value Initial value
     /// @param minValue Minimal value
     /// @param maxValue Maximal value
+    /// @param source CVar manager to copy initial value from
     /// @return CVar variable
     ///
-    CVar RegisterInt(CStringType name,
-                     CStringType description,
-                     Flags       flags,
-                     IntType     value,
-                     IntType     minValue,
-                     IntType     maxValue);
+    CVar RegisterInt(CStringType        name,
+                     CStringType        description,
+                     Flags              flags,
+                     IntType            value,
+                     IntType            minValue,
+                     IntType            maxValue,
+                     const CVarManager* source = nullptr);
 
     ///
     /// @brief Register CVar, boolean type
@@ -106,12 +108,14 @@ class CVarManager {
     /// @param description Description of the CVar
     /// @param flags CVar access flags
     /// @param value Initial value
+    /// @param source CVar manager to copy initial value from
     /// @return CVar variable
     ///
-    CVar RegisterBool(CStringType name, //
-                      CStringType description,
-                      Flags       flags,
-                      BoolType    value);
+    CVar RegisterBool(CStringType        name, //
+                      CStringType        description,
+                      Flags              flags,
+                      BoolType           value,
+                      const CVarManager* source = nullptr);
 
     ///
     /// @brief Register CVar, floating point type (double)
@@ -122,14 +126,16 @@ class CVarManager {
     /// @param value Initial value
     /// @param minValue Minimal value
     /// @param maxValue Maximal value
+    /// @param source CVar manager to copy initial value from
     /// @return CVar variable
     ///
-    CVar RegisterFloat(CStringType name,
-                       CStringType description,
-                       Flags       flags,
-                       FloatType   value,
-                       FloatType   minValue,
-                       FloatType   maxValue);
+    CVar RegisterFloat(CStringType        name,
+                       CStringType        description,
+                       Flags              flags,
+                       FloatType          value,
+                       FloatType          minValue,
+                       FloatType          maxValue,
+                       const CVarManager* source = nullptr);
 
     ///
     /// @brief Register CVar, string type
@@ -140,6 +146,7 @@ class CVarManager {
     /// @param value Initial value
     /// @param allowedStrings List of the allowed strings
     /// @param completionCallback Completion callback (use if allowed strings is nullptr)
+    /// @param source CVar manager to copy initial value from
     /// @return CVar variable
     ///
     CVar RegisterString(CStringType        name,
@@ -147,7 +154,8 @@ class CVarManager {
                         Flags              flags,
                         const StringType&  value,
                         CStringType*       allowedStrings,
-                        CompletionCallback completionCallback = nullptr);
+                        CompletionCallback completionCallback = nullptr,
+                        const CVarManager* source             = nullptr);
 
     ///
     /// @brief Register CVar, enumeration type
@@ -158,6 +166,7 @@ class CVarManager {
     /// @param value Initial value (integer)
     /// @param enumConstants Enumeration constants in integer format
     /// @param constNames Enumeration constants in string format
+    /// @param source CVar manager to copy initial value from
     /// @return CVar variable
     ///
     /// @note Order of integer and string constants must match
@@ -167,14 +176,18 @@ class CVarManager {
                       Flags              flags,
                       IntType            value,
                       const IntType*     enumConstants,
-                      const CStringType* constNames);
-
-    // TODO: Register commands
+                      const CStringType* constNames,
+                      const CVarManager* source = nullptr);
 
   private:
 
-    cfg::CVarManager*    mCVarManager;
-    cfg::CommandManager* mCmdManager;
+    cfg::CVarManager* mCVarManager{nullptr};
+
+  protected:
+
+    [[nodiscard]] cfg::CVarManager* GetCVarManager() noexcept {
+        return mCVarManager;
+    }
 };
 
 } // namespace Sage::Core::Console

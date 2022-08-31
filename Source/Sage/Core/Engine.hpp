@@ -18,13 +18,9 @@
 
 #pragma once
 
-#include <GraphicsTypes.h>
-#include <Sage/Core/Console/CVarManager.hpp>
-#include <Sage/Core/Graphics/GraphicsContext.hpp>
-#include <Sage/Core/Graphics/ImGui/ImGuiContext.hpp>
-#include <Sage/Core/Timer.hpp>
-#include <exception>
-#include <memory>
+#include "Context.hpp"
+
+#include <list>
 
 namespace Sage::Core {
 
@@ -36,20 +32,20 @@ class Engine {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(Engine)
 
-    Engine();
+    Engine(IVirtualConsole& console);
 
     ~Engine();
 
-    void Run();
+    void Loop();
+
+    static bool Run();
 
   private:
 
     void ComputeDelta();
 
-    std::shared_ptr<GraphicsContext> mGraphics;
-    std::shared_ptr<ImGuiContext>    mImGui;
-    std::shared_ptr<Timer>           mTimer;
-    bool                             mShowImGui{true};
+    std::list<Context> mContexts;
+    GraphicsCVars      mGraphicsCVars; //!< Global graphics CVars (persistent)
 };
 
 } // namespace Sage::Core

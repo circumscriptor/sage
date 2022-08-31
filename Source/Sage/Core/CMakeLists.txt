@@ -11,16 +11,18 @@
 set(SAGE_CORE_HEADERS
     "BasicTypes.hpp"
     "ClassDefinitions.hpp"
+    "Context.hpp"
     "Engine.hpp"
     "Exports.hpp"
-    "Timer.hpp"
     "SDL.hpp"
+    "Timer.hpp"
 )
 
 set(SAGE_CORE_SOURCES
+    "Context.cpp"
     "Engine.cpp"
-    "Timer.cpp"
     "SDL.cpp"
+    "Timer.cpp"
 )
 
 target_sources(SageEngine

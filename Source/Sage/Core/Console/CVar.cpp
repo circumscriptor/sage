@@ -56,7 +56,7 @@ CVar::Type CVar::GetType() const {
         case cfg::CVar::Type::Enum:
             return CVar::Enum;
     }
-    return CVar::Invalid;
+    return CVar::TypeInvalid;
 }
 
 CVar::CStringType CVar::GetTypeString() const {
@@ -74,6 +74,7 @@ CVar::NumberFormat CVar::GetNumberFormat() const {
         case cfg::CVar::NumberFormat::Hexadecimal:
             return CVar::Hexadecimal;
     }
+    return CVar::NumberFormatInvalid;
 }
 
 bool CVar::IsModified() const {

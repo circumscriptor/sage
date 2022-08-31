@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/ClassDefinitions.hpp>
-#include <cstdint>
 #include <string>
 
 namespace cfg {
@@ -41,10 +41,10 @@ class CVar {
     ///
     using CompletionCallback = int (*)(const char*, std::string*, int);
 
-    using FlagsType   = std::uint32_t;
-    using IntType     = std::int64_t;
+    using FlagsType   = UInt32;
+    using IntType     = SInt64;
     using BoolType    = bool;
-    using FloatType   = double;
+    using FloatType   = Float64;
     using StringType  = std::string;
     using CStringType = const char*;
 
@@ -72,7 +72,7 @@ class CVar {
         Float,
         String,
         Enum,
-        Invalid
+        TypeInvalid
     };
 
     ///
@@ -83,7 +83,8 @@ class CVar {
         Binary,
         Octal,
         Decimal,
-        Hexadecimal
+        Hexadecimal,
+        NumberFormatInvalid
     };
 
     ///

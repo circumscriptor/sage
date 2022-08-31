@@ -18,6 +18,7 @@
 
 #include "GraphicsCVars.hpp"
 
+#include <Sage/Core/Console/Log.hpp>
 #include <fmt/format.h>
 #include <iterator>
 
@@ -25,136 +26,65 @@ namespace Sage::Core::Graphics {
 
 using namespace Console;
 
-void GraphicsCVars::Register() {
-    SAGE_REGISTER_CVAR_BOOL("RetryRDInit",
-                            "retry render device initialization in case of failure",
-                            CVar::Persistent | CVar::InitOnly | CVar::RangeCheck,
-                            true);
-
-    SAGE_REGISTER_CVAR_INT("SyncInterval",
-                           "synchronization (swap) interval",
-                           CVar::Persistent | CVar::RangeCheck,
-                           1,
-                           kMinSyncInterval,
-                           kMaxSyncInterval);
-
-    SAGE_REGISTER_CVAR_INT("ResolutionX",
-                           "window resolution x-coord",
-                           CVar::Persistent | CVar::RangeCheck,
-                           0,
-                           kMinResolutionX,
-                           kMaxResolutionX);
-
-    SAGE_REGISTER_CVAR_INT("ResolutionY",
-                           "window resolution y-coord",
-                           CVar::Persistent | CVar::RangeCheck,
-                           0,
-                           kMinResolutionY,
-                           kMaxResolutionY);
-
-    SAGE_REGISTER_CVAR_ENUM("RenderDevice",
-                            "render device type",
-                            CVar::Persistent | CVar::RangeCheck,
-                            kRDValues[0],
-                            kRDValues.data(),
-                            kRDNames.data());
-
-    SAGE_REGISTER_CVAR_ENUM("ValidationLevel",
-                            "validation level",
-                            CVar::Persistent | CVar::InitOnly | CVar::RangeCheck,
-                            kVLValues[0],
-                            kVLValues.data(),
-                            kVLNames.data());
-
-    SAGE_REGISTER_CVAR_ENUM("FullScreenMode",
-                            "full screen mode",
-                            CVar::Persistent | CVar::RangeCheck,
-                            kFSMValues[0],
-                            kFSMValues.data(),
-                            kFSMNames.data());
-}
-
-void GraphicsCVars::RegisterVolatileCollection(GraphicsCVarsCollection& collection, std::string_view base) {
-    std::string name;
-    name.reserve(base.length() + 20);
-
-    // Sync interval
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "SyncInterval");
-        auto cvar                = SAGE_GET_CVAR("SyncInterval");
-        collection.iSyncInterval = SAGE_REGISTER_CVAR_INT(name.c_str(),
-                                                          cvar.GetDescription(),
-                                                          CVar::Volatile | CVar::RangeCheck,
-                                                          cvar.GetInt(),
-                                                          kMinSyncInterval,
-                                                          kMaxSyncInterval);
-        name.resize(0);
+void GraphicsCVars::Register(CVarManager& manager, CVar::Flags flags, const CVarManager* source) {
+    if (&manager == source) {
+        SAGE_LOG_DEBUG("Matching source and destination CVar managers, cannot register CVars");
+        return;
     }
 
-    // Resolution X
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "ResolutionX");
-        auto cvar               = SAGE_GET_CVAR("ResolutionX");
-        collection.iResolutionX = SAGE_REGISTER_CVAR_INT(name.c_str(),
-                                                         cvar.GetDescription(),
-                                                         CVar::Volatile | CVar::RangeCheck,
-                                                         cvar.GetInt(),
-                                                         kMinResolutionX,
-                                                         kMaxResolutionX);
-        name.resize(0);
-    }
+    bRetryRDInit = manager.RegisterBool("RetryRDInit",
+                                        "retry render device initialization in case of failure",
+                                        flags | CVar::InitOnly | CVar::RangeCheck,
+                                        kDefRetryRDInit,
+                                        source);
 
-    // Resolution Y
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "ResolutionY");
-        auto cvar               = SAGE_GET_CVAR("ResolutionY");
-        collection.iResolutionY = SAGE_REGISTER_CVAR_INT(name.c_str(),
-                                                         cvar.GetDescription(),
-                                                         CVar::Volatile | CVar::RangeCheck,
-                                                         cvar.GetInt(),
-                                                         kMinResolutionY,
-                                                         kMaxResolutionY);
-        name.resize(0);
-    }
+    iSyncInterval = manager.RegisterInt("SyncInterval",
+                                        "synchronization (swap) interval",
+                                        flags | CVar::RangeCheck,
+                                        kDefSyncInterval,
+                                        kMinSyncInterval,
+                                        kMaxSyncInterval,
+                                        source);
 
-    // Render device
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "RenderDevice");
-        auto cvar                = SAGE_GET_CVAR("RenderDevice");
-        collection.eRenderDevice = SAGE_REGISTER_CVAR_ENUM(name.c_str(),
-                                                           cvar.GetDescription(),
-                                                           CVar::Volatile | CVar::RangeCheck,
-                                                           cvar.GetInt(),
-                                                           kRDValues.data(),
-                                                           kRDNames.data());
-        name.resize(0);
-    }
+    iResolutionX = manager.RegisterInt("ResolutionX",
+                                       "window resolution x-coord",
+                                       flags | CVar::RangeCheck,
+                                       kDefResolutionX,
+                                       kMinResolutionX,
+                                       kMaxResolutionX,
+                                       source);
 
-    // Validation level
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "ValidationLevel");
-        auto cvar                   = SAGE_GET_CVAR("ValidationLevel");
-        collection.eValidationLevel = SAGE_REGISTER_CVAR_ENUM(name.c_str(),
-                                                              cvar.GetDescription(),
-                                                              CVar::Volatile | CVar::RangeCheck,
-                                                              cvar.GetInt(),
-                                                              kRDValues.data(),
-                                                              kRDNames.data());
-        name.resize(0);
-    }
+    iResolutionY = manager.RegisterInt("ResolutionY",
+                                       "window resolution y-coord",
+                                       flags | CVar::RangeCheck,
+                                       kDefResolutionY,
+                                       kMinResolutionY,
+                                       kMaxResolutionY,
+                                       source);
 
-    // Full screen mode
-    {
-        fmt::format_to(std::back_inserter(name), "{}.{}", base, "FullScreenMode");
-        auto cvar                  = SAGE_GET_CVAR("FullScreenMode");
-        collection.eFullScreenMode = SAGE_REGISTER_CVAR_ENUM(name.c_str(),
-                                                             cvar.GetDescription(),
-                                                             CVar::Volatile | CVar::RangeCheck,
-                                                             cvar.GetInt(),
-                                                             kFSMValues.data(),
-                                                             kFSMNames.data());
-        name.resize(0);
-    }
+    eRenderDevice = manager.RegisterEnum("RenderDevice",
+                                         "render device type",
+                                         flags | CVar::RangeCheck,
+                                         kDefRenderDevice,
+                                         kRenderDeviceValues.data(),
+                                         kRenderDeviceNames.data(),
+                                         source);
+
+    eValidationLevel = manager.RegisterEnum("ValidationLevel",
+                                            "validation level",
+                                            flags | CVar::InitOnly | CVar::RangeCheck,
+                                            kDefValidationLevel,
+                                            kValidationLevelValues.data(),
+                                            kValidationLevelNames.data(),
+                                            source);
+
+    eFullScreenMode = manager.RegisterEnum("FullScreenMode",
+                                           "full screen mode",
+                                           flags | CVar::RangeCheck,
+                                           kDefFullScreenMode,
+                                           kFullScreenModeValues.data(),
+                                           kFullScreenModeNames.data(),
+                                           source);
 }
 
 } // namespace Sage::Core::Graphics

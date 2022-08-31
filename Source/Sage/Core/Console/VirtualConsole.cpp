@@ -24,10 +24,14 @@
 
 #include <Sage/Core/IO/Internal/FileIOCallbacksSDL.hpp>
 #include <Sage/Core/IO/Path.hpp>
-#include <iostream>
+#include <map>
 
 #ifndef SAGE_VIRTUAL_CONSOLE_MARK
     #define SAGE_VIRTUAL_CONSOLE_MARK "> "
+#endif
+
+#ifndef SAGE_CMD_HASHTABLE_SIZE_HINT
+    #define SAGE_CMD_HASHTABLE_SIZE_HINT 0
 #endif
 
 namespace Sage::Core::Console {
@@ -36,17 +40,24 @@ static void ErrorCallback(const char* message, [[maybe_unused]] void* user) {
     SAGE_LOG_ERROR(message);
 }
 
+IVirtualConsole::IVirtualConsole() :
+    mCommandManager{cfg::CommandManager::createInstance(SAGE_CMD_HASHTABLE_SIZE_HINT, GetCVarManager())} {}
+
+IVirtualConsole::~IVirtualConsole() {
+    cfg::CommandManager::destroyInstance(mCommandManager);
+}
+
 class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTerminal {
   public:
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(GlobalVirtualConsole)
 
     GlobalVirtualConsole() :
-        cfg::SimpleCommandTerminal(CVars().mCmdManager, CVars().mCVarManager, SAGE_VIRTUAL_CONSOLE_MARK) {
+        cfg::SimpleCommandTerminal(GetCommandManager(), GetCVarManager(), SAGE_VIRTUAL_CONSOLE_MARK) {
         static IO::Internal::FileIOCallbacksSDL sFileIO;
         cfg::setErrorCallback(ErrorCallback, nullptr);
         cfg::setFileIOCallbacks(&sFileIO);
-        cfg::registerDefaultCommands(CVars().mCmdManager, this);
+        cfg::registerDefaultCommands(GetCommandManager(), this);
 
         SAGE_LOG_INFO("Using config file: {}", IO::Path::Config());
     }
@@ -95,6 +106,36 @@ class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTe
         }
     }
 
+    ContextID CreateContext() override {
+        auto contextID = mIDCounter++;
+        mContexts.try_emplace(contextID);
+        return contextID;
+    }
+
+    void DestroyContext(ContextID contextID) override {
+        auto context = mContexts.find(contextID);
+
+        if (context == mContexts.end()) {
+            SAGE_LOG_ERROR("Invalid context {}, cannot destroy context", contextID);
+            return;
+        }
+
+        mContexts.erase(context);
+    }
+
+    void RegisterPersistent(ICVarCollection& collection) override {
+        collection.Register(*this, CVar::Persistent, nullptr);
+    }
+
+    bool RegisterVolatile(ContextID contextID, ICVarCollection& collection) override {
+        if (auto context = mContexts.find(contextID); context != mContexts.end()) {
+            collection.Register(context->second, CVar::Volatile, this);
+            return true;
+        }
+        SAGE_LOG_ERROR("Invalid context {}, cannot register cvar collection", contextID);
+        return false;
+    }
+
     void ExecuteSaveConfig() {
         auto saveConfigCmd = fmt::format("saveConfig \"{}\"", IO::Path::Config());
 
@@ -112,6 +153,9 @@ class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTe
         execCmdLine(reloadConfigCmd.c_str());
         setCommandExecMode(execMode);
     }
+
+    std::map<ContextID, CVarManager> mContexts;
+    ContextID                        mIDCounter{0};
 };
 
 //

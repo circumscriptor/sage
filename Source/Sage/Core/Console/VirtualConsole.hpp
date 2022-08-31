@@ -25,8 +25,27 @@
 
 namespace Sage::Core::Console {
 
-class IVirtualConsole {
+struct ICVarCollection {
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(ICVarCollection)
+
+    ICVarCollection() = default;
+
+    virtual ~ICVarCollection() = default;
+
+    ///
+    /// @brief Register CVars in CVar manager
+    ///
+    /// @param manager CVar manager
+    /// @param flags Common flags set to each CVar
+    /// @param source CVar manager to copy from
+    ///
+    virtual void Register(CVarManager& manager, CVar::Flags flags, const CVarManager* source) = 0;
+};
+
+class IVirtualConsole : public CVarManager {
   public:
+
+    using ContextID = USize;
 
     enum Operation {
         kReload,
@@ -35,45 +54,31 @@ class IVirtualConsole {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(IVirtualConsole)
 
-    IVirtualConsole() = default;
+    IVirtualConsole();
 
-    virtual ~IVirtualConsole() = default;
-
-    [[nodiscard]] CVarManager& CVars() noexcept {
-        return mCVarManager;
-    }
-
-    [[nodiscard]] const CVarManager& CVars() const noexcept {
-        return mCVarManager;
-    }
+    virtual ~IVirtualConsole();
 
     virtual void SyncWithFile(Operation operation) = 0;
+
+    [[nodiscard]] virtual ContextID CreateContext() = 0;
+
+    virtual void DestroyContext(ContextID context) = 0;
+
+    virtual void RegisterPersistent(ICVarCollection& collection) = 0;
+
+    virtual bool RegisterVolatile(ContextID context, ICVarCollection& collection) = 0;
 
     static IVirtualConsole& Get();
 
   private:
 
-    CVarManager mCVarManager;
+    cfg::CommandManager* mCommandManager{nullptr};
+
+  protected:
+
+    [[nodiscard]] cfg::CommandManager* GetCommandManager() noexcept {
+        return mCommandManager;
+    }
 };
 
 } // namespace Sage::Core::Console
-
-#define SAGE_GET_CVAR(Name) Sage::Core::Console::IVirtualConsole::Get().CVars().Get(Name)
-
-#define SAGE_REGISTER_CVAR(Type, Name, Description, Flags, ...)                                                        \
-    Sage::Core::Console::IVirtualConsole::Get().CVars().Register##Type(Name, Description, Flags, __VA_ARGS__)
-
-#define SAGE_REGISTER_CVAR_INT(Name, Description, Flags, ...)                                                          \
-    SAGE_REGISTER_CVAR(Int, Name, Description, Flags, __VA_ARGS__)
-
-#define SAGE_REGISTER_CVAR_BOOL(Name, Description, Flags, ...)                                                         \
-    SAGE_REGISTER_CVAR(Bool, Name, Description, Flags, __VA_ARGS__)
-
-#define SAGE_REGISTER_CVAR_FLOAT(Name, Description, Flags, ...)                                                        \
-    SAGE_REGISTER_CVAR(Float, Name, Description, Flags, __VA_ARGS__)
-
-#define SAGE_REGISTER_CVAR_STRING(Name, Description, Flags, ...)                                                       \
-    SAGE_REGISTER_CVAR(String, Name, Description, Flags, __VA_ARGS__)
-
-#define SAGE_REGISTER_CVAR_ENUM(Name, Description, Flags, ...)                                                         \
-    SAGE_REGISTER_CVAR(Enum, Name, Description, Flags, __VA_ARGS__)

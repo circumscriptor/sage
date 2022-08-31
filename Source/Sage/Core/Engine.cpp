@@ -1,78 +1,83 @@
 
 #include "Engine.hpp"
 
+#include "Sage/Core/Console/VirtualConsole.hpp"
+
 #include <GraphicsTypes.h>
 #include <RmlUi/Core.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
+#include <Sage/Core/IO/Path.hpp>
+#include <Sage/Core/SDL.hpp>
+#include <optional>
 
 namespace Sage::Core {
 
-Engine::Engine() :
-    mGraphics{std::make_shared<GraphicsContext>()},
-    mImGui{std::make_shared<ImGuiContext>(mGraphics)},
-    mTimer{std::make_shared<Timer>()} {}
+using namespace Console;
+using namespace Graphics;
+using namespace IO;
+
+Engine::Engine(IVirtualConsole& console) {
+    console.RegisterPersistent(mGraphicsCVars);
+}
 
 Engine::~Engine() = default;
 
-void Engine::Run() {
+void Engine::Loop() {
     SDL_Event event;
-    bool      running = true;
-
-    mTimer->SetInterval(4);
-
-    while (running) {
+    while (!mContexts.empty()) {
         while (SDL_PollEvent(&event) != 0) {
-            mImGui->ProcessEvent(event);
-            switch (event.type) {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                case SDL_KEYDOWN:
-                    if (event.key.keysym.sym == SDLK_ESCAPE) {
-                        running = false;
-                    }
-                    break;
+            for (auto& context : mContexts) {
+                context.ProcessEvents(event);
             }
         }
-
-        mTimer->Update();
-
-        static const UInt32 kImGuiFlagsNoWindow =
-            UInt32(ImGuiWindowFlags_NoTitleBar) | UInt32(ImGuiWindowFlags_NoMove) |
-            UInt32(ImGuiWindowFlags_NoScrollbar) | UInt32(ImGuiWindowFlags_NoSavedSettings) |
-            UInt32(ImGuiWindowFlags_NoInputs) | UInt32(ImGuiWindowFlags_NoBackground) |
-            UInt32(ImGuiWindowFlags_NoDecoration) | UInt32(ImGuiWindowFlags_NoResize);
-
-        mImGui->NewFrame(float(mTimer->DeltaTime()));
-        {
-            const auto& SCDesc = mGraphics->GetSwapchain()->GetDesc();
-
-            ImGui::SetNextWindowPos({10.F, 10.F}, ImGuiCond_Once);
-            ImGui::Begin("Timing", nullptr, kImGuiFlagsNoWindow);
-
-            ImGui::TextColored({0.F, 1.F, 0.F, 1.F}, "   FPS    AVG       MIN       MAX   ");
-            ImGui::TextColored({0.F, 1.F, 0.F, 1.F},
-                               "%6.0f %6.2f ms %6.2f ms %6.2f ms",
-                               mTimer->AvgFrameRate(),
-                               mTimer->AvgDeltaTime() * 1000.0,
-                               mTimer->MinDeltaTime() * 1000.0,
-                               mTimer->MaxDeltaTime() * 1000.0);
-            ImGui::End();
-        }
-
-        mGraphics->Clear();
-
-        // Render
-
-        if (mShowImGui) {
-            mImGui->Render(0);
-        } else {
-            mImGui->EndFrame();
-        }
-
-        mGraphics->Present();
     }
+
+    auto checkContexts = std::find_if(mContexts.begin(), mContexts.end(), [](auto& context) -> bool {
+        return context.ShouldDestroy();
+    });
+
+    for (auto& context : mContexts) {
+        context.Update();
+    }
+
+    for (auto& context : mContexts) {
+        context.Render();
+    }
+}
+
+bool Engine::Run() {
+    try {
+        Sage::Core::SDL::Get();
+    } catch (const std::exception& e) {
+        return false;
+    }
+
+    // Initialize paths
+    SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
+    SAGE_LOG_DEBUG("Using user path: {}", Path::User());
+
+    SAGE_LOG_DEBUG("Starting running engine");
+
+    std::optional<Engine> engineOpt = std::nullopt;
+
+    try {
+        SAGE_LOG_DEBUG("Started running engine");
+        engineOpt.emplace(IVirtualConsole::Get());
+    } catch (const std::exception& e) {
+        SAGE_LOG_CRITICAL("Exception: {}, shutting down", e.what());
+        return false;
+    } catch (...) {
+        SAGE_LOG_CRITICAL("Unknown exception thrown, shutting down");
+        return false;
+    }
+
+    auto& engine = engineOpt.value();
+    while (!engine.mContexts.empty()) {
+        engine.Loop();
+    }
+    SAGE_LOG_DEBUG("Finishing");
+    return true;
 }
 
 } // namespace Sage::Core

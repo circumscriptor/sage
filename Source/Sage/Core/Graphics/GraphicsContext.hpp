@@ -19,6 +19,7 @@
 #pragma once
 
 #include "GraphicsCVars.hpp"
+#include "Sage/Core/Console/VirtualConsole.hpp"
 
 #include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/Console/CVarManager.hpp>
@@ -43,7 +44,7 @@ namespace Sage::Core::Graphics {
 /// @brief GraphicsEngine service
 ///
 ///
-class GraphicsContext : private GraphicsCVarsCollection {
+class GraphicsContext {
   public:
 
     static constexpr std::array<float, 4> kClearColor = {0.F, 0.F, 0.F, 1.F}; //!< Default clear color
@@ -57,7 +58,7 @@ class GraphicsContext : private GraphicsCVarsCollection {
         kInvalidDeviceType
     };
 
-    SAGE_CLASS_DELETE_COPY_AND_MOVE(GraphicsContext)
+    SAGE_CLASS_DELETE(GraphicsContext)
 
     ///
     /// @brief Convert device type to string
@@ -67,7 +68,9 @@ class GraphicsContext : private GraphicsCVarsCollection {
     ///
     static const char* DeviceTypeToString(Diligent::RENDER_DEVICE_TYPE deviceType);
 
-    GraphicsContext();
+    static bool IsDeviceTypeSupported(Diligent::RENDER_DEVICE_TYPE deviceType);
+
+    GraphicsContext(Console::IVirtualConsole& console, Console::IVirtualConsole::ContextID contextID);
 
     ~GraphicsContext() = default;
 
@@ -134,6 +137,8 @@ class GraphicsContext : private GraphicsCVarsCollection {
     Diligent::RefCntAutoPtr<Diligent::ISwapChain>                  mSwapchain;
     std::vector<Diligent::RefCntAutoPtr<Diligent::IDeviceContext>> mContexts;
     UInt32                                                         mImmediateContextsCount{};
+
+    GraphicsCVars mCVars;
 };
 
 } // namespace Sage::Core::Graphics

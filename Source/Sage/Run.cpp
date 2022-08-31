@@ -18,65 +18,8 @@
 
 #include "Run.hpp"
 
-#include <SDL2/SDL.h>
-#include <Sage/Core/Console/Log.hpp>
-#include <Sage/Core/Console/VirtualConsole.hpp>
 #include <Sage/Core/Engine.hpp>
-#include <Sage/Core/Graphics/GraphicsCVars.hpp>
-#include <Sage/Core/IO/Path.hpp>
-#include <Sage/Core/SDL.hpp>
-
-using namespace Sage::Core;
-using namespace Sage::Core::Console;
-using namespace Sage::Core::Graphics;
-using namespace Sage::Core::IO;
-
-namespace Sage::Core {
-
-constexpr int kExitSuccess = 0;
-constexpr int kExitFailure = 1;
-
-static bool PreRunOperations() {
-    return true;
-}
-
-} // namespace Sage::Core
 
 extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
-    try {
-        Sage::Core::SDL::Get();
-    } catch (const std::exception& e) {
-        return Sage::Core::kExitFailure;
-    }
-
-    // Initialize paths
-    SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
-    SAGE_LOG_DEBUG("Using user path: {}", Path::User());
-
-    // Register CVars
-    GraphicsCVars::Register();
-
-    // Load config
-    IVirtualConsole::Get().SyncWithFile(IVirtualConsole::kReload);
-
-    auto result = Sage::Core::kExitFailure;
-    if (Sage::Core::PreRunOperations()) {
-        SAGE_LOG_DEBUG("Pre-run operations complete");
-
-        try {
-            SAGE_LOG_DEBUG("Started running engine");
-            Sage::Core::Engine{}.Run();
-            result = Sage::Core::kExitSuccess;
-            SAGE_LOG_DEBUG("Finished running engine");
-        } catch (const std::exception& e) {
-            SAGE_LOG_CRITICAL("Exception: {}, shutting down", e.what());
-        } catch (...) {
-            SAGE_LOG_CRITICAL("Unknown exception thrown, shutting down");
-        }
-    } else {
-        SAGE_LOG_CRITICAL("Pre-run operations failed");
-    }
-
-    SAGE_LOG_DEBUG("Finished");
-    return result;
+    return Sage::Core::Engine::Run() ? 0 : 1;
 }

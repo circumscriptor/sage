@@ -26,41 +26,57 @@
 
 namespace Sage::Core::Console {
 
-CVarManager::CVarManager() :
-    mCVarManager(cfg::CVarManager::createInstance(SAGE_CVAR_HASHTABLE_SIZE_HINT)),
-    mCmdManager{cfg::CommandManager::createInstance(SAGE_CVAR_HASHTABLE_SIZE_HINT, mCVarManager)} {}
+CVarManager::CVarManager() : mCVarManager(cfg::CVarManager::createInstance(SAGE_CVAR_HASHTABLE_SIZE_HINT)) {}
 
 CVarManager::~CVarManager() {
-    cfg::CommandManager::destroyInstance(mCmdManager);
     cfg::CVarManager::destroyInstance(mCVarManager);
 }
 
-CVar CVarManager::Get(CStringType name) const {
+CVar CVarManager::Find(CStringType name) const {
     return CVar{mCVarManager->findCVar(name)};
 }
 
-CVar CVarManager::RegisterBool(CStringType name, CStringType description, Flags flags, BoolType value) {
-    return mCVarManager->registerCVarBool(name, description, FlagsType(flags), value);
+CVar CVarManager::RegisterBool(CStringType        name,
+                               CStringType        description,
+                               Flags              flags,
+                               BoolType           value,
+                               const CVarManager* source) {
+    if (source != nullptr) {
+        if (auto cvar = source->Find(name); cvar) {
+            value = cvar.GetBool();
+        }
+    }
+    return CVar{mCVarManager->registerCVarBool(name, description, FlagsType(flags), value)};
 }
 
-CVar CVarManager::RegisterInt(CStringType name,
-                              CStringType description,
-                              Flags       flags,
-                              IntType     value,
-                              IntType     minValue,
-                              IntType     maxValue) {
-    auto* cvar = mCVarManager->registerCVarInt(name, description, FlagsType(flags), value, minValue, maxValue);
-    return CVar{cvar};
+CVar CVarManager::RegisterInt(CStringType        name,
+                              CStringType        description,
+                              Flags              flags,
+                              IntType            value,
+                              IntType            minValue,
+                              IntType            maxValue,
+                              const CVarManager* source) {
+    if (source != nullptr) {
+        if (auto cvar = source->Find(name); cvar) {
+            value = cvar.GetInt();
+        }
+    }
+    return CVar{mCVarManager->registerCVarInt(name, description, FlagsType(flags), value, minValue, maxValue)};
 }
 
-CVar CVarManager::RegisterFloat(CStringType name,
-                                CStringType description,
-                                Flags       flags,
-                                FloatType   value,
-                                FloatType   minValue,
-                                FloatType   maxValue) {
-    auto* cvar = mCVarManager->registerCVarFloat(name, description, FlagsType(flags), value, minValue, maxValue);
-    return CVar{cvar};
+CVar CVarManager::RegisterFloat(CStringType        name,
+                                CStringType        description,
+                                Flags              flags,
+                                FloatType          value,
+                                FloatType          minValue,
+                                FloatType          maxValue,
+                                const CVarManager* source) {
+    if (source != nullptr) {
+        if (auto cvar = source->Find(name); cvar) {
+            value = cvar.GetFloat();
+        }
+    }
+    return CVar{mCVarManager->registerCVarFloat(name, description, FlagsType(flags), value, minValue, maxValue)};
 }
 
 CVar CVarManager::RegisterString(CStringType        name,
@@ -68,9 +84,20 @@ CVar CVarManager::RegisterString(CStringType        name,
                                  Flags              flags,
                                  const StringType&  value,
                                  CStringType*       allowedStrings,
-                                 CompletionCallback callback) {
-    auto* cvar = mCVarManager->registerCVarString(name, description, FlagsType(flags), value, allowedStrings, callback);
-    return CVar{cvar};
+                                 CompletionCallback callback,
+                                 const CVarManager* source) {
+    if (source != nullptr) {
+        if (auto cvar = source->Find(name); cvar) {
+            auto* result = mCVarManager->registerCVarString(name,
+                                                            description,
+                                                            FlagsType(flags),
+                                                            cvar.GetString(),
+                                                            allowedStrings,
+                                                            callback);
+            return CVar{result};
+        }
+    }
+    return CVar{mCVarManager->registerCVarString(name, description, FlagsType(flags), value, allowedStrings, callback)};
 }
 
 CVar CVarManager::RegisterEnum(CStringType        name,
@@ -78,14 +105,19 @@ CVar CVarManager::RegisterEnum(CStringType        name,
                                Flags              flags,
                                IntType            value,
                                const IntType*     enumConstants,
-                               const CStringType* constNames) {
-    auto* cvar = mCVarManager->registerCVarEnum(name,
-                                                description,
-                                                FlagsType(flags),
-                                                value,
-                                                enumConstants,
-                                                const_cast<CStringType*>(constNames));
-    return CVar{cvar};
+                               const CStringType* constNames,
+                               const CVarManager* source) {
+    if (source != nullptr) {
+        if (auto cvar = source->Find(name); cvar) {
+            value = cvar.GetInt();
+        }
+    }
+    return CVar{mCVarManager->registerCVarEnum(name,
+                                               description,
+                                               FlagsType(flags),
+                                               value,
+                                               enumConstants,
+                                               const_cast<CStringType*>(constNames))};
 }
 
 } // namespace Sage::Core::Console

@@ -19,6 +19,7 @@
 #include "GraphicsContext.hpp"
 
 #include "GraphicsCVars.hpp"
+#include "Sage/Core/Console/VirtualConsole.hpp"
 
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_video.h>
@@ -199,8 +200,32 @@ const char* GraphicsContext::DeviceTypeToString(Diligent::RENDER_DEVICE_TYPE dev
     }
 }
 
-GraphicsContext::GraphicsContext() {
-    GraphicsCVars::RegisterVolatileCollection(*this, "GC0");
+bool GraphicsContext::IsDeviceTypeSupported(Diligent::RENDER_DEVICE_TYPE deviceType) {
+    switch (deviceType) {
+#if GL_SUPPORTED
+        case RENDER_DEVICE_TYPE_GL:
+#endif
+#if GLES_SUPPORTED
+        case RENDER_DEVICE_TYPE_GLES:
+#endif
+#if VULKAN_SUPPORTED
+        case RENDER_DEVICE_TYPE_VULKAN:
+#endif
+#if D3D11_SUPPORTED
+        case RENDER_DEVICE_TYPE_D3D11:
+#endif
+#if D3D12_SUPPORTED
+        case RENDER_DEVICE_TYPE_D3D12:
+            return true;
+#endif
+        case RENDER_DEVICE_TYPE_METAL: // Metal is not supported
+        default:
+            return false;
+    }
+}
+
+GraphicsContext::GraphicsContext(Console::IVirtualConsole& console, Console::IVirtualConsole::ContextID contextID) {
+    console.RegisterVolatile(contextID, mCVars);
     if (!Initialize()) {
         throw std::exception("failed to initialize graphics context");
     }
@@ -217,15 +242,20 @@ bool GraphicsContext::Initialize() {
         return false;
     }
 
-    auto   renderDevice    = eRenderDevice.GetInt();
-    auto   validationLevel = eValidationLevel.GetInt();
+    auto   renderDevice    = mCVars.eRenderDevice.GetInt();
+    auto   validationLevel = mCVars.eValidationLevel.GetInt();
     Result result          = InitializeGraphics(nativeWindow,
                                        static_cast<RENDER_DEVICE_TYPE>(renderDevice),
                                        static_cast<VALIDATION_LEVEL>(validationLevel));
 
-    if (result != Result::kNoError && bRetryRDInit.GetBool()) {
-        auto selected = std::find(GraphicsCVars::kRDValues.begin(), GraphicsCVars::kRDValues.end(), renderDevice);
-        for (auto it = GraphicsCVars::kRDValues.begin(), end = GraphicsCVars::kRDValues.end(); it != end; ++it) {
+    if (result != Result::kNoError && mCVars.bRetryRDInit.GetBool()) {
+        auto selected = std::find(GraphicsCVars::kRenderDeviceValues.begin(),
+                                  GraphicsCVars::kRenderDeviceValues.end(),
+                                  renderDevice);
+
+        for (auto it = GraphicsCVars::kRenderDeviceValues.begin(), end = GraphicsCVars::kRenderDeviceValues.end();
+             it != end;
+             ++it) {
             if (it == selected) {
                 continue;
             }
@@ -251,11 +281,11 @@ bool GraphicsContext::InitializeWindow() {
 
     int    xPos  = SDL_WINDOWPOS_CENTERED;
     int    yPos  = SDL_WINDOWPOS_CENTERED;
-    int    xRes  = int(iResolutionX.GetInt());
-    int    yRes  = int(iResolutionY.GetInt());
+    int    xRes  = int(mCVars.iResolutionX.GetInt());
+    int    yRes  = int(mCVars.iResolutionY.GetInt());
     UInt32 flags = SDL_WINDOW_SHOWN;
 
-    auto fullScreenMode = static_cast<GraphicsCVars::FullScreenMode>(eFullScreenMode.GetInt());
+    auto fullScreenMode = static_cast<GraphicsCVars::FullScreenMode>(mCVars.eFullScreenMode.GetInt());
     switch (fullScreenMode) {
         case GraphicsCVars::kFullScreen: {
             flags |= UInt32(SDL_WINDOW_FULLSCREEN);
@@ -271,8 +301,8 @@ bool GraphicsContext::InitializeWindow() {
             } else {
                 SAGE_LOG_WARN("Cannot set fullscreen borderless mode, falling back to windowed mode");
                 fullScreenMode = GraphicsCVars::kWindowed;
-                eFullScreenMode.SetInt(CVar::IntType(fullScreenMode));
-                eFullScreenMode.ClearModified();
+                mCVars.eFullScreenMode.SetInt(CVar::IntType(fullScreenMode));
+                mCVars.eFullScreenMode.ClearModified();
             }
         } break;
         default:
@@ -297,10 +327,10 @@ bool GraphicsContext::InitializeWindow() {
     }
 
     SDL_GetWindowSize(mWindow, &xRes, &yRes);
-    iResolutionX.SetInt(xRes);
-    iResolutionY.SetInt(yRes);
-    iResolutionX.ClearModified();
-    iResolutionY.ClearModified();
+    mCVars.iResolutionX.SetInt(xRes);
+    mCVars.iResolutionY.SetInt(yRes);
+    mCVars.iResolutionX.ClearModified();
+    mCVars.iResolutionY.ClearModified();
     return true;
 }
 
@@ -397,7 +427,7 @@ void GraphicsContext::Clear() {
 }
 
 void GraphicsContext::Present() {
-    mSwapchain->Present(iSyncInterval.GetInt());
+    mSwapchain->Present(mCVars.iSyncInterval.GetInt());
 }
 
 void GraphicsContext::LoadContexts(const std::vector<Diligent::IDeviceContext*>& contexts) {
