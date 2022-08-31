@@ -32,32 +32,44 @@ using namespace Console;
 using namespace Graphics;
 using namespace IO;
 
-Engine::Engine(IVirtualConsole& console) {
-    console.RegisterPersistent(mGraphicsCVars);
+Engine::Engine(std::shared_ptr<IVirtualConsole> console) : mConsole{std::move(console)} {
+    mConsole->RegisterPersistent(mGraphicsCVars);
+
+    // Sync
+    mConsole->SyncWithFile(IVirtualConsole::kReload);
 }
 
 Engine::~Engine() = default;
 
+void Engine::DestroyStoppedContexts() {
+    auto contextToBeDestroyed = std::find_if(mContexts.begin(), mContexts.end(), [](auto& context) -> bool {
+        return context.ShouldDestroy();
+    });
+
+    if (contextToBeDestroyed != mContexts.end()) {
+        mContexts.erase(contextToBeDestroyed);
+    }
+}
+
 void Engine::Loop() {
     SDL_Event event;
+
     while (!mContexts.empty()) {
         while (SDL_PollEvent(&event) != 0) {
             for (auto& context : mContexts) {
                 context.ProcessEvents(event);
             }
         }
-    }
 
-    auto checkContexts = std::find_if(mContexts.begin(), mContexts.end(), [](auto& context) -> bool {
-        return context.ShouldDestroy();
-    });
+        DestroyStoppedContexts();
 
-    for (auto& context : mContexts) {
-        context.Update();
-    }
+        for (auto& context : mContexts) {
+            context.Update();
+        }
 
-    for (auto& context : mContexts) {
-        context.Render();
+        for (auto& context : mContexts) {
+            context.Render();
+        }
     }
 }
 
@@ -72,11 +84,13 @@ bool Engine::Run() {
     SAGE_LOG_DEBUG("Using base path: {}", Path::Base());
     SAGE_LOG_DEBUG("Using user path: {}", Path::User());
 
-    std::optional<Engine> engineOpt = std::nullopt;
+    std::optional<Engine> engine = std::nullopt;
+
+    auto console = IVirtualConsole::CreateInstance();
 
     try {
         SAGE_LOG_DEBUG("Starting running engine");
-        engineOpt.emplace(IVirtualConsole::Get());
+        engine.emplace(console);
     } catch (const std::exception& e) {
         SAGE_LOG_CRITICAL("Exception: {}, shutting down", e.what());
         return false;
@@ -85,10 +99,7 @@ bool Engine::Run() {
         return false;
     }
 
-    auto& engine = engineOpt.value();
-    while (!engine.mContexts.empty()) {
-        engine.Loop();
-    }
+    engine->Loop();
     SAGE_LOG_DEBUG("Finishing");
     return true;
 }

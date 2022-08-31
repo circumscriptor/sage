@@ -32,7 +32,7 @@ class Engine {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(Engine)
 
-    Engine(IVirtualConsole& console);
+    Engine(std::shared_ptr<IVirtualConsole> console);
 
     ~Engine();
 
@@ -42,10 +42,11 @@ class Engine {
 
   private:
 
-    void ComputeDelta();
+    void DestroyStoppedContexts();
 
-    std::list<Context> mContexts;
-    GraphicsCVars      mGraphicsCVars; //!< Global graphics CVars (persistent)
+    std::shared_ptr<IVirtualConsole> mConsole;
+    std::list<Context>               mContexts;
+    GraphicsCVars                    mGraphicsCVars; //!< Global graphics CVars (persistent)
 };
 
 } // namespace Sage::Core

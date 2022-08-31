@@ -68,7 +68,7 @@ class IVirtualConsole : public CVarManager {
 
     virtual bool RegisterVolatile(ContextID context, ICVarCollection& collection) = 0;
 
-    static IVirtualConsole& Get();
+    static std::shared_ptr<IVirtualConsole> CreateInstance();
 
   private:
 

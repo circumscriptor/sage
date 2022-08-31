@@ -25,14 +25,16 @@ namespace Sage::Core {
 using namespace Console;
 using namespace Graphics;
 
-Context::Context(IVirtualConsole& console) : mConsole{console}, mContextID{console.CreateContext()} {
+Context::Context(std::shared_ptr<IVirtualConsole> console) :
+    mConsole{std::move(console)},
+    mContextID{mConsole->CreateContext()} {
     mGraphics = std::make_shared<GraphicsContext>(console, mContextID);
     mImGui    = std::make_shared<ImGuiContext>(mGraphics);
     mTimer    = std::make_shared<Timer>();
 }
 
 Context::~Context() {
-    mConsole.DestroyContext(mContextID);
+    mConsole->DestroyContext(mContextID);
 }
 
 void Context::Update() {

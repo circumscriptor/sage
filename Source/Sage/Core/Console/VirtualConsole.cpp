@@ -36,9 +36,24 @@
 
 namespace Sage::Core::Console {
 
-static void ErrorCallback(const char* message, [[maybe_unused]] void* user) {
-    SAGE_LOG_ERROR(message);
-}
+struct VirtualConsoleGlobalState {
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(VirtualConsoleGlobalState)
+
+    VirtualConsoleGlobalState() {
+        static IO::Internal::FileIOCallbacksSDL sFileIO;
+        cfg::setErrorCallback(ErrorCallback, nullptr);
+        cfg::setFileIOCallbacks(&sFileIO);
+    }
+
+    ~VirtualConsoleGlobalState() {
+        cfg::setFileIOCallbacks(nullptr);
+        cfg::setErrorCallback(nullptr, nullptr);
+    }
+
+    static void ErrorCallback(const char* message, [[maybe_unused]] void* user) {
+        SAGE_LOG_ERROR(message);
+    }
+};
 
 IVirtualConsole::IVirtualConsole() :
     mCommandManager{cfg::CommandManager::createInstance(SAGE_CMD_HASHTABLE_SIZE_HINT, GetCVarManager())} {}
@@ -47,25 +62,18 @@ IVirtualConsole::~IVirtualConsole() {
     cfg::CommandManager::destroyInstance(mCommandManager);
 }
 
-class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTerminal {
+class VirtualConsoleImpl : public IVirtualConsole, public cfg::SimpleCommandTerminal {
   public:
 
-    SAGE_CLASS_DELETE_COPY_AND_MOVE(GlobalVirtualConsole)
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(VirtualConsoleImpl)
 
-    GlobalVirtualConsole() :
+    VirtualConsoleImpl() :
         cfg::SimpleCommandTerminal(GetCommandManager(), GetCVarManager(), SAGE_VIRTUAL_CONSOLE_MARK) {
-        static IO::Internal::FileIOCallbacksSDL sFileIO;
-        cfg::setErrorCallback(ErrorCallback, nullptr);
-        cfg::setFileIOCallbacks(&sFileIO);
         cfg::registerDefaultCommands(GetCommandManager(), this);
-
         SAGE_LOG_INFO("Using config file: {}", IO::Path::Config());
     }
 
-    ~GlobalVirtualConsole() override {
-        cfg::setFileIOCallbacks(nullptr);
-        cfg::setErrorCallback(nullptr, nullptr);
-    }
+    ~VirtualConsoleImpl() override = default;
 
     void print(const char* text) override {
         std::string_view view = text;
@@ -164,9 +172,9 @@ class GlobalVirtualConsole : public IVirtualConsole, public cfg::SimpleCommandTe
 //
 //
 
-IVirtualConsole& IVirtualConsole::Get() {
-    static GlobalVirtualConsole sVirtualConsole;
-    return sVirtualConsole;
+std::shared_ptr<IVirtualConsole> IVirtualConsole::CreateInstance() {
+    static VirtualConsoleGlobalState sGlobalState;
+    return std::make_shared<VirtualConsoleImpl>();
 }
 
 } // namespace Sage::Core::Console

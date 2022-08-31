@@ -31,7 +31,7 @@ class Context {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(Context)
 
-    explicit Context(Console::IVirtualConsole& console);
+    explicit Context(std::shared_ptr<Console::IVirtualConsole> console);
 
     ~Context();
 
@@ -47,11 +47,11 @@ class Context {
 
   private:
 
-    Console::IVirtualConsole&                  mConsole;
-    const Console::IVirtualConsole::ContextID  mContextID;
+    std::shared_ptr<Console::IVirtualConsole>  mConsole;
     std::shared_ptr<Graphics::GraphicsContext> mGraphics;
     std::shared_ptr<Graphics::ImGuiContext>    mImGui;
     std::shared_ptr<Timer>                     mTimer;
+    const Console::IVirtualConsole::ContextID  mContextID;
     bool                                       mShowImGui{true};
     bool                                       mShouldDestroy{false};
 };
