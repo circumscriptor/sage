@@ -29,8 +29,10 @@ namespace Sage::Core::Graphics {
 
 using namespace Diligent;
 
-ImGuiContext::ImGuiContext(std::shared_ptr<GraphicsContext> graphics, Uint32 vertexBufferSize, Uint32 indexBufferSize) :
-    mGraphics{std::move(graphics)},
+ImGuiContext::ImGuiContext(std::shared_ptr<IGraphicsContext> graphics,
+                           Uint32                            vertexBufferSize,
+                           Uint32                            indexBufferSize) :
+    mGraphics{std::dynamic_pointer_cast<Internal::GraphicsContext>(graphics)},
     mContext(ImGui::CreateContext()) {
     ImGui::SetCurrentContext(mContext);
     ImGuiIO& imIO    = ImGui::GetIO();
@@ -134,7 +136,7 @@ void ImGuiContext::ProcessEvent(const SDL_Event& event) {
             imIO.AddKeyEvent(ImGuiKey_ModAlt, (mods & UInt32(KMOD_ALT)) != 0);
             imIO.AddKeyEvent(ImGuiKey_ModSuper, (mods & UInt32(KMOD_GUI)) != 0);
 
-            ImGuiKey key = KeycodeToImGuiKey(event.key.keysym.sym);
+            ImGuiKey key = Internal::KeycodeToImGuiKey(event.key.keysym.sym);
             imIO.AddKeyEvent(key, (event.type == SDL_KEYDOWN));
             imIO.SetKeyEventNativeData(
                 key,

@@ -11,6 +11,11 @@
 set(SAGE_GRAPHICS_HEADERS
     "GraphicsCVars.hpp"
     "GraphicsContext.hpp"
+    "Internal/AddContextCreateInfo.hpp"
+    "Internal/DiligentDebugCallback.hpp"
+    "Internal/GetNativeWindow.hpp"
+    "Internal/GraphicsContextImpl.hpp"
+    "Internal/ModifyCreateInfo.hpp"
 )
 
 set(SAGE_GRAPHICS_SOURCES

@@ -47,13 +47,13 @@ class Context {
 
   private:
 
-    std::shared_ptr<Console::IVirtualConsole>  mConsole;
-    std::shared_ptr<Graphics::GraphicsContext> mGraphics;
-    std::shared_ptr<Graphics::ImGuiContext>    mImGui;
-    std::shared_ptr<Timer>                     mTimer;
-    const Console::IVirtualConsole::ContextID  mContextID;
-    bool                                       mShowImGui{true};
-    bool                                       mShouldDestroy{false};
+    std::shared_ptr<Console::IVirtualConsole>   mConsole;
+    std::shared_ptr<Graphics::IGraphicsContext> mGraphics;
+    std::shared_ptr<Graphics::ImGuiContext>     mImGui;
+    std::shared_ptr<Timer>                      mTimer;
+    const Console::IVirtualConsole::ContextID   mContextID;
+    bool                                        mShowImGui{true};
+    bool                                        mShouldDestroy{false};
 };
 
 } // namespace Sage::Core

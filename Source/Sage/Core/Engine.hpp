@@ -32,7 +32,7 @@ class Engine {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(Engine)
 
-    Engine(std::shared_ptr<IVirtualConsole> console);
+    explicit Engine(std::shared_ptr<IVirtualConsole> console);
 
     ~Engine();
 
@@ -42,7 +42,7 @@ class Engine {
 
   private:
 
-    void DestroyStoppedContexts();
+    void DestroyNextStoppedContext();
 
     std::shared_ptr<IVirtualConsole> mConsole;
     std::list<Context>               mContexts;

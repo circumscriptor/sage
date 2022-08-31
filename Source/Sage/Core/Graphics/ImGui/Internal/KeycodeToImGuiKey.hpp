@@ -22,7 +22,7 @@
 
 #include <SDL2/SDL.h>
 
-namespace Sage::Core::Graphics {
+namespace Sage::Core::Graphics::Internal {
 
 static inline ImGuiKey KeycodeToImGuiKey(int keycode) {
     switch (keycode) {
@@ -241,4 +241,4 @@ static inline ImGuiKey KeycodeToImGuiKey(int keycode) {
     }
 }
 
-} // namespace Sage::Core::Graphics
+} // namespace Sage::Core::Graphics::Internal

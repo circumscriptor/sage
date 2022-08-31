@@ -21,6 +21,8 @@
 #include "../GraphicsContext.hpp"
 #include "ImGuiRenderer.hpp"
 
+#include <Sage/Core/Graphics/Internal/GraphicsContextImpl.hpp>
+
 union SDL_Event;
 
 namespace Sage::Core::Graphics {
@@ -33,9 +35,9 @@ class ImGuiContext {
 
     SAGE_CLASS_DELETE(ImGuiContext)
 
-    ImGuiContext(std::shared_ptr<GraphicsContext> graphics,
-                 UInt32                           vertexBufferSize = kDefaultInitialVBSize,
-                 UInt32                           indexBufferSize  = kDefaultInitialIBSize);
+    ImGuiContext(std::shared_ptr<IGraphicsContext> graphics,
+                 UInt32                            vertexBufferSize = kDefaultInitialVBSize,
+                 UInt32                            indexBufferSize  = kDefaultInitialIBSize);
 
     ~ImGuiContext();
 
@@ -53,10 +55,10 @@ class ImGuiContext {
 
     static void SetClipboardText(void* user, const char* text);
 
-    std::shared_ptr<GraphicsContext> mGraphics;
-    std::unique_ptr<ImGuiRenderer>   mRenderer;
-    char*                            mClipboardText{nullptr}; // Allocated by SDL
-    ::ImGuiContext*                  mContext;
+    std::shared_ptr<Internal::GraphicsContext> mGraphics;
+    std::unique_ptr<ImGuiRenderer>             mRenderer;
+    char*                                      mClipboardText{nullptr}; // Allocated by SDL
+    ::ImGuiContext*                            mContext;
 };
 
 } // namespace Sage::Core::Graphics

@@ -41,7 +41,7 @@ Engine::Engine(std::shared_ptr<IVirtualConsole> console) : mConsole{std::move(co
 
 Engine::~Engine() = default;
 
-void Engine::DestroyStoppedContexts() {
+void Engine::DestroyNextStoppedContext() {
     auto contextToBeDestroyed = std::find_if(mContexts.begin(), mContexts.end(), [](auto& context) -> bool {
         return context.ShouldDestroy();
     });
@@ -61,7 +61,7 @@ void Engine::Loop() {
             }
         }
 
-        DestroyStoppedContexts();
+        DestroyNextStoppedContext();
 
         for (auto& context : mContexts) {
             context.Update();

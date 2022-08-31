@@ -9,7 +9,7 @@
 //
 
 ///
-/// @file GraphicsEngine.hpp
+/// @file GraphicsContext.hpp
 /// @brief ...
 ///
 /// @copyright Copyright (c) 2022
@@ -19,10 +19,11 @@
 #pragma once
 
 #include "GraphicsCVars.hpp"
-#include "Sage/Core/Console/VirtualConsole.hpp"
+#include "Sage/Core/Graphics/GraphicsContext.hpp"
 
 #include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/Console/CVarManager.hpp>
+#include <Sage/Core/Console/VirtualConsole.hpp>
 
 // Diligent
 #include <DeviceContext.h>
@@ -34,111 +35,45 @@
 
 // stdlib
 #include <array>
-#include <vector>
 
 struct SDL_Window;
 
 namespace Sage::Core::Graphics {
 
-///
-/// @brief GraphicsEngine service
-///
-///
-class GraphicsContext {
+class IGraphicsContext {
   public:
 
-    static constexpr std::array<float, 4> kClearColor = {0.F, 0.F, 0.F, 1.F}; //!< Default clear color
+    static constexpr std::array<float, 4> kClearColor{0.F, 0.F, 0.F, 1.F}; //!< Default clear color
 
-    enum Result {
-        kNoError,
-        kFailedLibrary,
-        kNoAdapters,
-        kFailedRenderDevice,
-        kFailedSwapchain,
-        kInvalidDeviceType
-    };
+    SAGE_CLASS_DELETE(IGraphicsContext)
 
-    SAGE_CLASS_DELETE(GraphicsContext)
-
-    ///
-    /// @brief Convert device type to string
-    ///
-    /// @param deviceType Device type
-    /// @return Null-terminated string
-    ///
-    static const char* DeviceTypeToString(Diligent::RENDER_DEVICE_TYPE deviceType);
-
-    static bool IsDeviceTypeSupported(Diligent::RENDER_DEVICE_TYPE deviceType);
-
-    GraphicsContext(Console::IVirtualConsole& console, Console::IVirtualConsole::ContextID contextID);
-
-    ~GraphicsContext() = default;
-
-    [[nodiscard]] UInt32 ImmediateContextsCount() const {
-        return mImmediateContextsCount;
+    IGraphicsContext(std::shared_ptr<Console::IVirtualConsole> console, Console::IVirtualConsole::ContextID contextID) :
+        mConsole{std::move(console)},
+        mContextID{contextID} {
+        mConsole->RegisterVolatile(contextID, mCVars);
     }
 
-    [[nodiscard]] SDL_Window* GetWindow() {
-        return mWindow;
-    }
+    virtual ~IGraphicsContext() = default;
 
-    [[nodiscard]] Diligent::IRenderDevice* GetDevice() {
-        return mDevice;
-    }
+    virtual void Clear() = 0;
 
-    [[nodiscard]] Diligent::ISwapChain* GetSwapchain() {
-        return mSwapchain;
-    }
+    virtual void Present() = 0;
 
-    [[nodiscard]] Diligent::IDeviceContext* GetContext(UInt32 index) {
-        // TODO: Assert index < mContexts.size()
-        return mContexts[index];
-    }
-
-    UInt32 Enumerate(Diligent::Version minVersion, std::vector<Diligent::GraphicsAdapterInfo>& adapters);
-
-    void Present();
-
-    void Clear();
+    static std::shared_ptr<IGraphicsContext> CreateInstance(std::shared_ptr<Console::IVirtualConsole> console,
+                                                            Console::IVirtualConsole::ContextID       contextID,
+                                                            std::shared_ptr<IGraphicsContext>         base = nullptr);
 
   private:
 
-    bool Initialize();
+    std::shared_ptr<Console::IVirtualConsole> mConsole;
+    const Console::IVirtualConsole::ContextID mContextID;
+    GraphicsCVars                             mCVars;
 
-    bool InitializeWindow();
+  protected:
 
-    Result InitializeGraphics(const Diligent::NativeWindow& nativeWindow,
-                              Diligent::RENDER_DEVICE_TYPE  deviceType,
-                              Diligent::VALIDATION_LEVEL    validationLevel);
-
-    Result InitializeGraphicsOpenGL(const Diligent::NativeWindow& nativeWindow,
-                                    Diligent::VALIDATION_LEVEL    validationLevel);
-
-    Result InitializeGraphicsVulkan(const Diligent::NativeWindow& nativeWindow,
-                                    Diligent::VALIDATION_LEVEL    validationLevel);
-
-    Result InitializeGraphicsD3D11(const Diligent::NativeWindow& nativeWindow,
-                                   Diligent::VALIDATION_LEVEL    validationLevel);
-
-    Result InitializeGraphicsD3D12(const Diligent::NativeWindow& nativeWindow,
-                                   Diligent::VALIDATION_LEVEL    validationLevel);
-
-    void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                       deviceType,
-                          Diligent::EngineCreateInfo&                        engineCI,
-                          Diligent::SwapChainDesc&                           swapchainDesc,
-                          std::vector<Diligent::GraphicsAdapterInfo>&        adapters,
-                          std::vector<Diligent::ImmediateContextCreateInfo>& contextCIs);
-
-    void LoadContexts(const std::vector<Diligent::IDeviceContext*>& contexts);
-
-    SDL_Window*                                                    mWindow{nullptr};
-    Diligent::RefCntAutoPtr<Diligent::IEngineFactory>              mFactory;
-    Diligent::RefCntAutoPtr<Diligent::IRenderDevice>               mDevice;
-    Diligent::RefCntAutoPtr<Diligent::ISwapChain>                  mSwapchain;
-    std::vector<Diligent::RefCntAutoPtr<Diligent::IDeviceContext>> mContexts;
-    UInt32                                                         mImmediateContextsCount{};
-
-    GraphicsCVars mCVars;
+    [[nodiscard]] GraphicsCVars& CVars() noexcept {
+        return mCVars;
+    }
 };
 
 } // namespace Sage::Core::Graphics

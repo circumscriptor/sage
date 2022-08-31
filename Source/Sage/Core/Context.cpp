@@ -28,7 +28,7 @@ using namespace Graphics;
 Context::Context(std::shared_ptr<IVirtualConsole> console) :
     mConsole{std::move(console)},
     mContextID{mConsole->CreateContext()} {
-    mGraphics = std::make_shared<GraphicsContext>(console, mContextID);
+    mGraphics = IGraphicsContext::CreateInstance(mConsole, mContextID);
     mImGui    = std::make_shared<ImGuiContext>(mGraphics);
     mTimer    = std::make_shared<Timer>();
 }
@@ -50,8 +50,6 @@ void Context::Render() {
 
     mImGui->NewFrame(float(mTimer->DeltaTime()));
     {
-        const auto& SCDesc = mGraphics->GetSwapchain()->GetDesc();
-
         ImGui::SetNextWindowPos({10.F, 10.F}, ImGuiCond_Once);
         ImGui::Begin("Timing", nullptr, kImGuiFlagsNoWindow);
 
