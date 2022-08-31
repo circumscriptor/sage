@@ -19,7 +19,7 @@
 #pragma once
 
 #include <RmlUi/Core/RenderInterface.h>
-#include <Sage/ClassDefinitions.hpp>
+#include <Sage/Core/ClassDefinitions.hpp>
 
 namespace Sage::Core::Graphics {
 

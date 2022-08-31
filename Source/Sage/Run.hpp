@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/Exports.hpp>
 
 ///
@@ -30,3 +31,8 @@
 extern "C" {
     SGAPI int SageEngineRun(int argc, char** argv);
 }
+
+#define SAGE_REGISTER_EXPORTS                                                                                          \
+    extern "C" {                                                                                                       \
+        SAGE_SYMBOL_EXPORT extern const Sage::Core::UInt32 NvOptimusEnablement = 1;                                    \
+    }

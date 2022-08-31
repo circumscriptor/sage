@@ -17,13 +17,10 @@
 ///
 
 #include <SDL2/SDL_main.h>
-#include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Run.hpp>
 
 int main(int argc, char** argv) {
     return SageEngineRun(argc, argv);
 }
 
-extern "C" {
-    SAGE_SYMBOL_EXPORT Sage::Core::UInt32 NvOptimusEnablement = 1;
-}
+SAGE_REGISTER_EXPORTS
