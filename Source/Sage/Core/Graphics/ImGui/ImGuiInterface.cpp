@@ -20,6 +20,7 @@
 
 #include "ImGuiRenderer.hpp"
 #include "Internal/KeycodeToImGuiKey.hpp"
+#include "imgui/imgui.h"
 
 // SDL
 #include <SDL2/SDL.h>
@@ -35,11 +36,14 @@ class ImGuiInterfaceImpl : public IImGuiInterface, public ImGuiRenderer {
 
     SAGE_CLASS_DELETE(ImGuiInterfaceImpl)
 
-    ImGuiInterfaceImpl(std::shared_ptr<IGraphicsContext> graphics, UInt32 vertexBufferSize, UInt32 indexBufferSize) :
+    ImGuiInterfaceImpl(ImGuiContext*                     context,
+                       std::shared_ptr<IGraphicsContext> graphics,
+                       UInt32                            vertexBufferSize,
+                       UInt32                            indexBufferSize) :
         ImGuiRenderer(std::dynamic_pointer_cast<Internal::GraphicsContext>(std::move(graphics)),
                       vertexBufferSize,
                       indexBufferSize),
-        mContext{ImGui::CreateContext()} {
+        mContext{context} {
         ImGui::SetCurrentContext(mContext);
         ImGuiIO& imIO    = ImGui::GetIO();
         imIO.IniFilename = nullptr;
@@ -177,7 +181,10 @@ class ImGuiInterfaceImpl : public IImGuiInterface, public ImGuiRenderer {
 std::shared_ptr<IImGuiInterface> IImGuiInterface::CreateInstance(std::shared_ptr<IGraphicsContext> graphics,
                                                                  UInt32                            vertexBufferSize,
                                                                  UInt32                            indexBufferSize) {
-    return std::make_shared<ImGuiInterfaceImpl>(std::move(graphics), vertexBufferSize, indexBufferSize);
+    return std::make_shared<ImGuiInterfaceImpl>(ImGui::CreateContext(),
+                                                std::move(graphics),
+                                                vertexBufferSize,
+                                                indexBufferSize);
 }
 
 } // namespace Sage::Core::Graphics
