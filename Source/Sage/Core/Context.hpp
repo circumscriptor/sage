@@ -21,7 +21,7 @@
 #include <Sage/Core/ClassDefinitions.hpp>
 #include <Sage/Core/Console/VirtualConsole.hpp>
 #include <Sage/Core/Graphics/GraphicsContext.hpp>
-#include <Sage/Core/Graphics/ImGui/ImGuiContext.hpp>
+#include <Sage/Core/Graphics/ImGui/ImGuiInterface.hpp>
 #include <Sage/Core/Timer.hpp>
 
 namespace Sage::Core {
@@ -51,7 +51,7 @@ class Context {
 
     std::shared_ptr<Console::IVirtualConsole>   mConsole;
     std::shared_ptr<Graphics::IGraphicsContext> mGraphics;
-    std::shared_ptr<Graphics::ImGuiContext>     mImGui;
+    std::shared_ptr<Graphics::IImGuiInterface>  mImGui;
     std::shared_ptr<Timer>                      mTimer;
     const Console::IVirtualConsole::ContextID   mContextID;
     bool                                        mShowImGui{true};

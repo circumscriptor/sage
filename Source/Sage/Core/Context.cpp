@@ -20,6 +20,7 @@
 
 #include <SDL2/SDL.h>
 #include <Sage/Core/Console/Log.hpp>
+#include <imgui/imgui.h>
 
 namespace Sage::Core {
 
@@ -35,13 +36,13 @@ Context::Context(std::shared_ptr<IVirtualConsole> console) :
     mConsole{std::move(console)},
     mContextID{mConsole->CreateContext()} {
     mGraphics = IGraphicsContext::CreateInstance(mConsole, mContextID, nullptr);
-    mImGui    = std::make_shared<ImGuiContext>(mGraphics);
+    mImGui    = IImGuiInterface::CreateInstance(mGraphics);
     mTimer    = std::make_shared<Timer>();
 }
 
 Context::Context(Context& base) : mConsole{base.mConsole}, mContextID{mConsole->CreateContext()} {
     mGraphics = IGraphicsContext::CreateInstance(mConsole, mContextID, base.mGraphics);
-    mImGui    = std::make_shared<ImGuiContext>(mGraphics);
+    mImGui    = IImGuiInterface::CreateInstance(mGraphics);
     mTimer    = std::make_shared<Timer>();
 }
 
@@ -83,7 +84,7 @@ void Context::Render() {
     // Render
 
     if (mShowImGui) {
-        mImGui->Render(0);
+        mImGui->Render();
     } else {
         mImGui->EndFrame();
     }

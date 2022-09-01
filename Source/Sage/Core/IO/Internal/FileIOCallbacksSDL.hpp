@@ -21,8 +21,8 @@
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_rwops.h>
 #include <Sage/Core/Console/Log.hpp>
-#include <Sage/Core/Console/ThirdParty/cfg.hpp>
 #include <array>
+#include <libcfg/cfg.hpp>
 
 namespace Sage::Core::IO::Internal {
 

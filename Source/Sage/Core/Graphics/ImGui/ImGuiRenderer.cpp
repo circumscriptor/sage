@@ -337,28 +337,34 @@ static float4 TransformClipRect(SURFACE_TRANSFORM surfacePreTransform, const ImV
 
 namespace Sage::Core::Graphics {
 
-ImGuiRenderer::ImGuiRenderer(IRenderDevice* device,
-                             TEXTURE_FORMAT backBufferFormat,
-                             TEXTURE_FORMAT depthBufferFormat,
-                             Uint32         initialVertexBufferSize,
-                             Uint32         initialIndexBufferSize) :
-    mDevice{device},
-    mBackBufferFormat{backBufferFormat},
-    mDepthBufferFormat{depthBufferFormat},
-    mBaseVertexSupported{bool(device->GetAdapterInfo().DrawCommand.CapFlags & DRAW_COMMAND_CAP_FLAG_BASE_VERTEX)},
+ImGuiRenderer::ImGuiRenderer(std::shared_ptr<Internal::GraphicsContext> graphics,
+                             Uint32                                     initialVertexBufferSize,
+                             Uint32                                     initialIndexBufferSize) :
+    mGraphics{std::move(graphics)},
+    mBackBufferFormat{mGraphics->GetSwapchain()->GetDesc().ColorBufferFormat},
+    mDepthBufferFormat{mGraphics->GetSwapchain()->GetDesc().DepthBufferFormat},
+    mBaseVertexSupported{
+        bool(mGraphics->GetDevice()->GetAdapterInfo().DrawCommand.CapFlags & DRAW_COMMAND_CAP_FLAG_BASE_VERTEX)},
     mVertexBufferSize{initialVertexBufferSize},
     mIndexBufferSize{initialIndexBufferSize} {
     // Set ImGui flags
     IMGUI_CHECKVERSION();
     ImGuiIO& imIO = ImGui::GetIO();
 
-    imIO.BackendRendererName = "ImGuiRenderer (Diligent)";
+    imIO.BackendRendererName = "ImGuiRenderer (Diligent Engine)";
     if (mBaseVertexSupported) {
         imIO.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     }
 
     // Initialize buffers
     Create();
+}
+
+void ImGuiRenderer::NewFrame() noexcept {
+    const auto& SCDesc   = mGraphics->GetSwapchain()->GetDesc();
+    mRenderSurfaceWidth  = SCDesc.Width;
+    mRenderSurfaceHeight = SCDesc.Height;
+    mSurfacePreTransform = SCDesc.PreTransform;
 }
 
 void ImGuiRenderer::GrowVertexBuffer(ImDrawData* drawData) {
@@ -374,7 +380,7 @@ void ImGuiRenderer::GrowVertexBuffer(ImDrawData* drawData) {
                               USAGE_DYNAMIC,
                               CPU_ACCESS_WRITE};
 
-        mDevice->CreateBuffer(bufferDesc, nullptr, &mVertexBuffer);
+        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mVertexBuffer);
     }
 }
 
@@ -391,7 +397,7 @@ void ImGuiRenderer::GrowIndexBuffer(ImDrawData* drawData) {
                               USAGE_DYNAMIC,
                               CPU_ACCESS_WRITE};
 
-        mDevice->CreateBuffer(bufferDesc, nullptr, &mIndexBuffer);
+        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mIndexBuffer);
     }
 }
 
@@ -577,11 +583,13 @@ void ImGuiRenderer::RenderCommandLists(IDeviceContext* context, ImDrawData* draw
     }
 }
 
-void ImGuiRenderer::RenderDrawData(IDeviceContext* context, ImDrawData* drawData) {
+void ImGuiRenderer::RenderDrawData(ImDrawData* drawData) {
     // Avoid rendering when minimized
     if (drawData->DisplaySize.x <= 0.0F || drawData->DisplaySize.y <= 0.0F) {
         return;
     }
+
+    IDeviceContext* context = mGraphics->GetContext(0);
 
     GrowVertexBuffer(drawData);
     GrowIndexBuffer(drawData);
@@ -596,7 +604,7 @@ void ImGuiRenderer::CreatePSO() {
     shaderCI.UseCombinedTextureSamplers = true;
     shaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_DEFAULT;
 
-    const auto DeviceType = mDevice->GetDeviceInfo().Type;
+    const auto DeviceType = mGraphics->GetDevice()->GetDeviceInfo().Type;
 
     RefCntAutoPtr<IShader> vertexShader;
     {
@@ -626,7 +634,7 @@ void ImGuiRenderer::CreatePSO() {
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        mDevice->CreateShader(shaderCI, &vertexShader);
+        mGraphics->GetDevice()->CreateShader(shaderCI, &vertexShader);
     }
 
     RefCntAutoPtr<IShader> pixelShader;
@@ -657,7 +665,7 @@ void ImGuiRenderer::CreatePSO() {
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        mDevice->CreateShader(shaderCI, &pixelShader);
+        mGraphics->GetDevice()->CreateShader(shaderCI, &pixelShader);
     }
 
     GraphicsPipelineStateCreateInfo psoCI;
@@ -714,13 +722,13 @@ void ImGuiRenderer::CreatePSO() {
     psoCI.PSODesc.ResourceLayout.ImmutableSamplers    = kImmutableSamplers.data();
     psoCI.PSODesc.ResourceLayout.NumImmutableSamplers = kImmutableSamplers.size();
 
-    mDevice->CreateGraphicsPipelineState(psoCI, &mPSO);
+    mGraphics->GetDevice()->CreateGraphicsPipelineState(psoCI, &mPSO);
 }
 
 void ImGuiRenderer::CreateCB() {
     {
         BufferDesc bufferDesc{nullptr, sizeof(float4x4), BIND_UNIFORM_BUFFER, USAGE_DYNAMIC, CPU_ACCESS_WRITE};
-        mDevice->CreateBuffer(bufferDesc, nullptr, &mVertexConstantBuffer);
+        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mVertexConstantBuffer);
     }
     mPSO->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(mVertexConstantBuffer);
 }
@@ -749,7 +757,7 @@ void ImGuiRenderer::CreateTexture() {
     TextureData textureData{mip0Data.data(), mip0Data.size()};
 
     RefCntAutoPtr<ITexture> texture;
-    mDevice->CreateTexture(textureDesc, &textureData, &texture);
+    mGraphics->GetDevice()->CreateTexture(textureDesc, &textureData, &texture);
     mFontSRV = texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
     mSRB.Release();

@@ -19,10 +19,10 @@
 #include "VirtualConsole.hpp"
 
 #include "Log.hpp"
-#include "ThirdParty/cfg.hpp"
 
 #include <Sage/Core/IO/Internal/FileIOCallbacksSDL.hpp>
 #include <Sage/Core/IO/Path.hpp>
+#include <libcfg/cfg.hpp>
 #include <map>
 
 #ifndef SAGE_VIRTUAL_CONSOLE_MARK

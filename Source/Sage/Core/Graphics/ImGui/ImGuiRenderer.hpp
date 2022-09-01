@@ -18,12 +18,16 @@
 
 #pragma once
 
-#include <DeviceContext.h>
-#include <RefCntAutoPtr.hpp>
-#include <RenderDevice.h>
 #include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/ClassDefinitions.hpp>
+#include <Sage/Core/Graphics/Internal/GraphicsContextImpl.hpp>
+
+// ImGui
 #include <imgui/imgui.h>
+
+// Diligent
+#include <GraphicsTypes.h>
+#include <RefCntAutoPtr.hpp>
 
 namespace Sage::Core::Graphics {
 
@@ -32,23 +36,23 @@ class ImGuiRenderer {
 
     SAGE_CLASS_DELETE_COPY_AND_MOVE(ImGuiRenderer)
 
-    ImGuiRenderer(Diligent::IRenderDevice* device,
-                  Diligent::TEXTURE_FORMAT backBufferFormat,
-                  Diligent::TEXTURE_FORMAT depthBufferFormat,
-                  Diligent::Uint32         vertexBufferSize,
-                  Diligent::Uint32         indexBufferSize);
+    ImGuiRenderer(std::shared_ptr<Internal::GraphicsContext> graphics,
+                  Diligent::Uint32                           vertexBufferSize,
+                  Diligent::Uint32                           indexBufferSize);
 
     ~ImGuiRenderer() = default;
 
-    void NewFrame(Diligent::Uint32            renderSurfaceWidth,
-                  Diligent::Uint32            renderSurfaceHeight,
-                  Diligent::SURFACE_TRANSFORM surfacePreTransform) noexcept {
-        mRenderSurfaceWidth  = renderSurfaceWidth;
-        mRenderSurfaceHeight = renderSurfaceHeight;
-        mSurfacePreTransform = surfacePreTransform;
+    void NewFrame() noexcept;
+
+    void RenderDrawData(ImDrawData* drawData);
+
+    [[nodiscard]] UInt32 GetRenderSurfaceWidth() const noexcept {
+        return mRenderSurfaceWidth;
     }
 
-    void RenderDrawData(Diligent::IDeviceContext* context, ImDrawData* drawData);
+    [[nodiscard]] UInt32 GetRenderSurfaceHeight() const noexcept {
+        return mRenderSurfaceHeight;
+    }
 
   private:
 
@@ -83,7 +87,7 @@ class ImGuiRenderer {
 
     void RenderCommandLists(Diligent::IDeviceContext* context, ImDrawData* drawData);
 
-    Diligent::RefCntAutoPtr<Diligent::IRenderDevice>          mDevice;
+    std::shared_ptr<Internal::GraphicsContext>                mGraphics;
     Diligent::RefCntAutoPtr<Diligent::IBuffer>                mVertexBuffer;
     Diligent::RefCntAutoPtr<Diligent::IBuffer>                mIndexBuffer;
     Diligent::RefCntAutoPtr<Diligent::IBuffer>                mVertexConstantBuffer;

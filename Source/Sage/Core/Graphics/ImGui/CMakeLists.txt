@@ -9,12 +9,12 @@
 #
 
 set(SAGE_GRAPHICS_IMGUI_HEADERS
-    "ImGuiContext.hpp"
+    "ImGuiInterface.hpp"
     "ImGuiRenderer.hpp"
     )
     
 set(SAGE_GRAPHICS_IMGUI_SOURCES
-    "ImGuiContext.cpp"
+    "ImGuiInterface.cpp"
     "ImGuiRenderer.cpp"
 )
 
