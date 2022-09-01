@@ -18,13 +18,12 @@
 
 #pragma once
 
-#include "ThirdParty/imgui.h"
-
 #include <DeviceContext.h>
 #include <RefCntAutoPtr.hpp>
 #include <RenderDevice.h>
 #include <Sage/Core/BasicTypes.hpp>
 #include <Sage/Core/ClassDefinitions.hpp>
+#include <imgui/imgui.h>
 
 namespace Sage::Core::Graphics {
 

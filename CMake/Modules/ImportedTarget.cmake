@@ -116,10 +116,10 @@ function(add_imported_target target_name)
     endif()
     set_property(TARGET ${target_name} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${include_dirs}")
 
-    set(imported_shared_release "${CMAKE_SHARED_LIBRARY_PREFIX}${release_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    set(imported_shared_debug   "${CMAKE_SHARED_LIBRARY_PREFIX}${debug_name}${CMAKE_SHARED_LIBRARY_SUFFIX}"  )
-    set(imported_static_release "${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(imported_shared_debug   "${CMAKE_SHARED_LIBRARY_PREFIX}${debug_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set(imported_static_debug   "${CMAKE_STATIC_LIBRARY_PREFIX}${debug_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(imported_shared_release "${CMAKE_SHARED_LIBRARY_PREFIX}${release_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(imported_static_release "${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
     if(arg_SHARED)
 

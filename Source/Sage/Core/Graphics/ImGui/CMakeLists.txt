@@ -11,23 +11,11 @@
 set(SAGE_GRAPHICS_IMGUI_HEADERS
     "ImGuiContext.hpp"
     "ImGuiRenderer.hpp"
-    "ThirdParty/imconfig.h"
-    "ThirdParty/imgui_internal.h"
-    "ThirdParty/imgui.h"
-    "ThirdParty/imstb_rectpack.h"
-    "ThirdParty/imstb_textedit.h"
-    "ThirdParty/imstb_truetype.h"
-    "ThirdParty/misc/"
     )
     
 set(SAGE_GRAPHICS_IMGUI_SOURCES
     "ImGuiContext.cpp"
     "ImGuiRenderer.cpp"
-    "ThirdParty/imgui_draw.cpp"
-    "ThirdParty/imgui_tables.cpp"
-    "ThirdParty/imgui_widgets.cpp"
-    "ThirdParty/imgui.cpp"
-    "ThirdParty/imgui.cpp"
 )
 
 target_sources(SageEngine

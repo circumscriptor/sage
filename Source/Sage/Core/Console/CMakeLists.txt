@@ -13,7 +13,6 @@ set(SAGE_CONSOLE_HEADERS
     "CVar.hpp"
     "CVarManager.hpp"
     "VirtualConsole.hpp"
-    "ThirdParty/cfg.hpp"
 )
 
 set(SAGE_CONSOLE_SOURCES
@@ -21,7 +20,6 @@ set(SAGE_CONSOLE_SOURCES
     "CVar.cpp"
     "CVarManager.cpp"
     "VirtualConsole.cpp"
-    "ThirdParty/cfg.cpp"
 )
 
 target_sources(SageEngine

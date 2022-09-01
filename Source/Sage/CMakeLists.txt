@@ -24,3 +24,4 @@ target_sources(SageEngine
 )
 
 add_subdirectory(Core)
+add_subdirectory(ThirdParty)

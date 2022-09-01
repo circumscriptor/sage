@@ -18,9 +18,8 @@
 
 #pragma once
 
-#include "../ThirdParty/imgui.h"
-
 #include <SDL2/SDL.h>
+#include <imgui/imgui.h>
 
 namespace Sage::Core::Graphics::Internal {
 

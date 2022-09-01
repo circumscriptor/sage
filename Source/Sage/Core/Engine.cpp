@@ -33,9 +33,10 @@ using namespace Graphics;
 using namespace IO;
 
 Engine::Engine(std::shared_ptr<IVirtualConsole> console) : mConsole{std::move(console)} {
+    // Register persistent CVars
     mConsole->RegisterPersistent(mGraphicsCVars);
 
-    // Sync
+    // Sync persistent CVars
     mConsole->SyncWithFile(IVirtualConsole::kReload);
 
     // Insert primary context

@@ -18,9 +18,8 @@
 
 #include "CVar.hpp"
 
-#include "ThirdParty/cfg.hpp"
-
 #include <array>
+#include <libcfg/cfg.hpp>
 #include <memory>
 
 namespace Sage::Core::Console {

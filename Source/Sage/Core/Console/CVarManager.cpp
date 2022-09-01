@@ -18,7 +18,7 @@
 
 #include "CVarManager.hpp"
 
-#include "ThirdParty/cfg.hpp"
+#include <libcfg/cfg.hpp>
 
 #ifndef SAGE_CVAR_HASHTABLE_SIZE_HINT
     #define SAGE_CVAR_HASHTABLE_SIZE_HINT 0
