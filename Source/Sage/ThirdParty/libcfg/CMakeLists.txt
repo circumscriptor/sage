@@ -29,5 +29,5 @@ target_link_libraries(SageThirdPartyLibCfg
         SageThirdPartyCommon
 )
 
-# Add to the list of third party targets
-set(SAGE_THIRDPARTY_TARGETS "${SAGE_THIRDPARTY_TARGETS};SageThirdPartyLibCfg" CACHE INTERNAL "")
+# Add to the list of third party libraries
+set(SAGE_THIRDPARTY_LIBRARIES "${SAGE_THIRDPARTY_LIBRARIES};SageThirdPartyLibCfg" CACHE INTERNAL "")

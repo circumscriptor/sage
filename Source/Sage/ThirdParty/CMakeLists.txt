@@ -20,6 +20,8 @@ add_library(SageThirdPartyCommon INTERFACE)
 # Add subdirectories with third party targets
 #
 
+set(SAGE_THIRDPARTY_LIBRARIES "SageThirdParty" CACHE INTERNAL "")
+
 add_subdirectory(imgui)
 add_subdirectory(libcfg)
 
@@ -36,3 +38,6 @@ target_include_directories(SageThirdParty
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
+# Add to the list of libraries
+set(SAGE_LIBRARIES "${SAGE_LIBRARIES};${SAGE_THIRDPARTY_LIBRARIES}" CACHE INTERNAL "")

@@ -14,7 +14,7 @@ set(SAGE_INPUT_HEADERS
 set(SAGE_INPUT_SOURCES
 )
 
-target_sources(SageEngine
+target_sources(SageCore
     PRIVATE
         ${SAGE_INPUT_HEADERS}
         ${SAGE_INPUT_SOURCES}

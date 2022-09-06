@@ -20,13 +20,7 @@
 
 #include <Sage/Core/Exports.hpp>
 
-///
-/// @brief
-///
-/// @param argc
-/// @param argv
-/// @return int
-///
 extern "C" {
+    // TODO: Add third option for custom main script
     SGAPI int SageEngineRun(int argc, char** argv);
 }

@@ -28,7 +28,7 @@
     #define SAGE_SYMBOL_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
-#ifdef SageEngine_EXPORTS
+#ifdef SAGE_EXPORTING
     #define SAGE_EXPORT    SAGE_SYMBOL_EXPORT
     #define SAGE_NO_EXPORT SAGE_SYMBOL_HIDDEN
 #else
@@ -36,8 +36,8 @@
     #define SAGE_NO_EXPORT SAGE_SYMBOL_HIDDEN
 #endif
 
-#ifdef SAGE_BUILD_STATIC
-    #define SGAPI
-#else
+#if SAGE_EXPORT_API
     #define SGAPI SAGE_EXPORT
+#else
+    #define SGAPI
 #endif

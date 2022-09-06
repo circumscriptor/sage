@@ -23,7 +23,7 @@ set(SAGE_GRAPHICS_SOURCES
     "GraphicsContext.cpp"
 )
 
-target_sources(SageEngine
+target_sources(SageCore
     PRIVATE
         ${SAGE_GRAPHICS_HEADERS}
         ${SAGE_GRAPHICS_SOURCES}

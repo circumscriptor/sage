@@ -8,22 +8,28 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-set(SAGE_CONSOLE_HEADERS
-    "Log.hpp"
-    "CVar.hpp"
-    "CVarManager.hpp"
-    "VirtualConsole.hpp"
+add_executable(SageLaunch)
+
+set(SAGE_LAUNCH_HEADERS
 )
 
-set(SAGE_CONSOLE_SOURCES
-    "Log.cpp"
-    "CVar.cpp"
-    "CVarManager.cpp"
-    "VirtualConsole.cpp"
+set(SAGE_LAUNCH_SOURCES
+    "Main.cpp"
 )
 
-target_sources(SageCore
+target_sources(SageLaunch
     PRIVATE
-        ${SAGE_CONSOLE_HEADERS}
-        ${SAGE_CONSOLE_SOURCES}
+        ${SAGE_LAUNCH_HEADERS}
+        ${SAGE_LAUNCH_SOURCES}
 )
+
+target_link_libraries(SageLaunch
+    PRIVATE
+        SageCommonPrivate
+        SageCore
+
+        SDL2::SDL2main
+)
+
+# Add to the list of executables
+set(SAGE_EXECUTABLES "${SAGE_EXECUTABLES};SageLaunch" CACHE INTERNAL "")

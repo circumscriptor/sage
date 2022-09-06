@@ -8,6 +8,8 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
+add_library(SageCore STATIC)
+
 set(SAGE_CORE_HEADERS
     "BasicTypes.hpp"
     "ClassDefinitions.hpp"
@@ -26,13 +28,36 @@ set(SAGE_CORE_SOURCES
     "Run.cpp"
 )
 
-target_sources(SageEngine
+target_sources(SageCore
     PRIVATE
         ${SAGE_CORE_HEADERS}
         ${SAGE_CORE_SOURCES}
+)
+
+target_link_libraries(SageCore
+    PRIVATE
+)
+
+target_link_libraries(SageCore
+    PUBLIC
+        SageCommonPublic
+
+    PRIVATE
+        SageCommonPrivate
+        SageThirdParty
+
+        Diligent::Headers
+        SDL2::SDL2
+        EnTT::EnTT
+        Edyn::Edyn
+        fmt::fmt
+        spdlog::spdlog
 )
 
 add_subdirectory(Console)
 add_subdirectory(Graphics)
 add_subdirectory(Input)
 add_subdirectory(IO)
+
+# Add to the list of libraries
+set(SAGE_LIBRARIES "${SAGE_LIBRARIES};SageCore" CACHE INTERNAL "")

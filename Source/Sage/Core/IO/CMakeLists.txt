@@ -20,7 +20,7 @@ set(SAGE_IO_SOURCES
     "Path.cpp"
 )
 
-target_sources(SageEngine
+target_sources(SageCore
     PRIVATE
         ${SAGE_IO_HEADERS}
         ${SAGE_IO_HEADERS_INTERNAL}

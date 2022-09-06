@@ -12,33 +12,40 @@
 # Add subdirectories
 #
 
-set(SAGE_THIRDPARTY_TARGETS "SageThirdParty" CACHE INTERNAL "")
+set(SAGE_LIBRARIES "" CACHE INTERNAL "")
+set(SAGE_EXECUTABLES "" CACHE INTERNAL "")
 
 add_subdirectory(Core)
+add_subdirectory(Launch)
 add_subdirectory(ThirdParty)
 
 #
 # Add visibility properties to all relevant targets
 #
 
-set(_targets SageEngine ${SAGE_THIRDPARTY_TARGETS})
-
-set_target_properties(${_targets}
+set_target_properties(${SAGE_LIBRARIES} ${SAGE_EXECUTABLES}
     PROPERTIES
         C_VISIBILITY_PRESET hidden
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN true
-        POSITION_INDEPENDENT_CODE true
 )
 
+if(SAGE_PIE_SUPPORTED)
+    set_target_properties(${SAGE_LIBRARIES} ${SAGE_EXECUTABLES}
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE true
+    )
+else()
+    set_target_properties(${SAGE_LIBRARIES}
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE true
+    )
+endif()
+
 if(SAGE_IPO_SUPPORTED)
-    set_target_properties(${_targets}
+    set_target_properties(${SAGE_LIBRARIES} ${SAGE_EXECUTABLES}
         PROPERTIES
             INTERPROCEDURAL_OPTIMIZATION true
     )
 endif()
 
-target_link_libraries(SageEngine
-    PRIVATE
-        SageThirdParty
-)

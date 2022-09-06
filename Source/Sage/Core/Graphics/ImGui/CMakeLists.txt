@@ -18,7 +18,7 @@ set(SAGE_GRAPHICS_IMGUI_SOURCES
     "ImGuiRenderer.cpp"
 )
 
-target_sources(SageEngine
+target_sources(SageCore
     PRIVATE
         ${SAGE_GRAPHICS_IMGUI_HEADERS}
         ${SAGE_GRAPHICS_IMGUI_SOURCES}

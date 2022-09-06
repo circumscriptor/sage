@@ -9,53 +9,42 @@
 #
 
 #
-# Sage::Engine
+# Add common targets
 #
 
-add_library(SageEngine SHARED)
-add_library(Sage::Engine ALIAS SageEngine)
+add_library(SageCommonPublic INTERFACE)
+add_library(SageCommonPrivate INTERFACE)
 
-target_include_directories(SageEngine
-    PUBLIC
+target_include_directories(SageCommonPublic
+    INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-target_compile_definitions(SageEngine
-    PRIVATE
+target_compile_definitions(SageCommonPrivate
+    INTERFACE
         _CRT_SECURE_NO_WARNINGS 
-        SAGE_LOG_SOURCE=1
-    PUBLIC
-        $<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,STATIC_LIBRARY>:SAGE_BUILD_STATIC>
+        SAGE_EXPORTING
+        SAGE_LOG_SOURCE=$<BOOL:${SAGE_LOG_SOURCE}>
 )
 
-target_link_libraries(SageEngine
-    PRIVATE
-        PlatformDefinitions
-        Diligent::Headers
-        SDL2::SDL2
-        EnTT::EnTT
-        Edyn::Edyn
-        fmt::fmt
-        spdlog::spdlog
+target_compile_definitions(SageCommonPublic
+    INTERFACE
+        SAGE_EXPORT_API=$<BOOL:${SAGE_EXPORT_API}>
 )
 
-target_compile_features(SageEngine
-    PUBLIC
+target_compile_features(SageCommonPublic
+    INTERFACE
         cxx_std_17
 )
 
-add_subdirectory(Sage)
-
-#
-# Sage::Launch
-#
-
-add_executable(SageLaunch "Launch.cpp")
-add_executable(Sage::Launch ALIAS SageLaunch)
-
-target_link_libraries(SageLaunch
-    PRIVATE
+target_link_libraries(SageCommonPrivate
+    INTERFACE
+        SageCommonPublic
         PlatformDefinitions
-        Sage::Engine 
-        SDL2::SDL2main
 )
+
+#
+# Add subdirectories
+#
+
+add_subdirectory(Sage)
