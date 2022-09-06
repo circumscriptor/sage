@@ -41,6 +41,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMake/Modules")
 include(ImportedTarget)
 include(PlatformDefinitions)
 include(CheckIPOSupported)
+include(CheckPIESupported)
 
 #
 # Check IPO/LTO support
@@ -57,6 +58,24 @@ if(_ipo_supported)
     message(STATUS "Building with IPO/LTO")
 else()
     set(SAGE_IPO_SUPPORTED FALSE CACHE INTERNAL "")
+    message(STATUS "${_ipo_supported_output}")
+endif()
+
+#
+# Check PIE support
+#
+
+check_pie_supported(
+    OUTPUT_VARIABLE _pie_supported_output
+    LANGUAGES CXX
+)
+
+if(CMAKE_CXX_LINK_PIE_SUPPORTED)
+    set(SAGE_PIE_SUPPORTED TRUE CACHE INTERNAL "")
+    message(STATUS "Building with PIE")
+else()
+    set(SAGE_PIE_SUPPORTED FALSE CACHE INTERNAL "")
+    message(STATUS "${_pie_supported_output}")
 endif()
 
 #

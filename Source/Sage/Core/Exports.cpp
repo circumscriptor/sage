@@ -9,16 +9,17 @@
 //
 
 ///
-/// @file Launch.hpp
+/// @file Exports.cpp
 /// @brief ...
 ///
 /// @copyright Copyright (c) 2022
 ///
 ///
 
-#include <SDL2/SDL_main.h>
-#include <Sage/Core/Run.hpp>
+#include "Exports.hpp"
 
-int main(int argc, char** argv) {
-    return SageEngineRun(argc, argv);
+#include <Sage/Core/BasicTypes.hpp>
+
+extern "C" {
+    SAGE_SYMBOL_EXPORT extern const Sage::Core::UInt32 NvOptimusEnablement = 1;
 }

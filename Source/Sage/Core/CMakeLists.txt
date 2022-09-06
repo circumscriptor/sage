@@ -21,6 +21,7 @@ set(SAGE_CORE_HEADERS
 set(SAGE_CORE_SOURCES
     "Context.cpp"
     "Engine.cpp"
+    "Exports.cpp"
     "Timer.cpp"
     "Run.cpp"
 )

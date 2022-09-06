@@ -30,8 +30,3 @@
 extern "C" {
     SGAPI int SageEngineRun(int argc, char** argv);
 }
-
-#define SAGE_REGISTER_EXPORTS                                                                                          \
-    extern "C" {                                                                                                       \
-        SAGE_SYMBOL_EXPORT extern const unsigned NvOptimusEnablement = 1;                                              \
-    }
