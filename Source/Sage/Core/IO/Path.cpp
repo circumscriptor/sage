@@ -52,7 +52,7 @@ namespace Sage::Core::IO {
 // NOTE: Using '/' instead of '\\', because some dependencies cannot handle '\\'
 
 std::string Path::GetBasePath() {
-    char*       basePath = SDL_GetPrefPath(SAGE_ORG_NAME, SAGE_APP_NAME);
+    char*       basePath = SDL_GetBasePath();
     std::string path     = basePath == nullptr ? SAGE_DEFAULT_BASE_PATH : basePath;
     std::replace(path.begin(), path.end(), '\\', '/');
     SDL_free(basePath);
@@ -60,7 +60,7 @@ std::string Path::GetBasePath() {
 }
 
 std::string Path::GetUserPath() {
-    char*       userPath = SDL_GetBasePath();
+    char*       userPath = SDL_GetPrefPath(SAGE_ORG_NAME, SAGE_APP_NAME);
     std::string path     = userPath == nullptr ? SAGE_DEFAULT_USER_PATH : userPath;
     std::replace(path.begin(), path.end(), '\\', '/');
     SDL_free(userPath);

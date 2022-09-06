@@ -8,7 +8,33 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
+#
+# Add SageCore library
+#
+
+set(SAGE_CORE_DEPS
+    Diligent::Headers
+    SDL2::SDL2
+    EnTT::EnTT
+    Edyn::Edyn
+    fmt::fmt
+    spdlog::spdlog
+)
+
 add_library(SageCore STATIC)
+
+target_link_libraries(SageCore
+    PUBLIC
+        SageCommonPublic
+    PRIVATE
+        SageCommonPrivate
+        SageThirdParty
+        ${SAGE_CORE_DEPS}
+)
+
+#
+# Add sources
+#
 
 set(SAGE_CORE_HEADERS
     "BasicTypes.hpp"
@@ -34,25 +60,9 @@ target_sources(SageCore
         ${SAGE_CORE_SOURCES}
 )
 
-target_link_libraries(SageCore
-    PRIVATE
-)
-
-target_link_libraries(SageCore
-    PUBLIC
-        SageCommonPublic
-
-    PRIVATE
-        SageCommonPrivate
-        SageThirdParty
-
-        Diligent::Headers
-        SDL2::SDL2
-        EnTT::EnTT
-        Edyn::Edyn
-        fmt::fmt
-        spdlog::spdlog
-)
+#
+# Add subdirectories
+#
 
 add_subdirectory(Console)
 add_subdirectory(Graphics)
