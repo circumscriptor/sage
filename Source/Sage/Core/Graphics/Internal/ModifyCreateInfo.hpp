@@ -20,6 +20,8 @@
 
 #include "AddContextCreateInfo.hpp"
 
+#include <Sage/Core/BasicTypes.hpp>
+
 namespace Sage::Core::Graphics::Internal {
 
 static inline void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                       deviceType,
@@ -36,10 +38,9 @@ static inline void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                
 
     // Select adapter with most queues (prefer discrete adapters)
     {
-        engineCI.AdapterId         = 0;
-        Diligent::Uint32 maxQueues = 0;
-        for (Diligent::Uint32 adapterId = 0, count = Diligent::Uint32(adapters.size()); adapterId < count;
-             ++adapterId) {
+        engineCI.AdapterId = 0;
+        UInt32 maxQueues   = 0;
+        for (UInt32 adapterId = 0, count = UInt32(adapters.size()); adapterId < count; ++adapterId) {
             auto& adapter = adapters[adapterId];
 
             if (adapter.NumQueues < maxQueues ||
@@ -60,9 +61,8 @@ static inline void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                
                          Diligent::COMMAND_QUEUE_TYPE_GRAPHICS,
                          Diligent::QUEUE_PRIORITY_HIGH);
 
-    // TODO: Add validation macro
-
-    if (adapter.Type == Diligent::ADAPTER_TYPE_DISCRETE) { // TODO: add force option
+    if (adapter.Type == Diligent::ADAPTER_TYPE_DISCRETE &&
+        !(deviceType == Diligent::RENDER_DEVICE_TYPE_GL || deviceType == Diligent::RENDER_DEVICE_TYPE_GLES)) {
         AddContextCreateInfo(contextCIs,
                              adapter,
                              "Transfer",
