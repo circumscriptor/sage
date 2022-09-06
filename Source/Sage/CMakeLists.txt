@@ -8,20 +8,37 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
+#
+# Add subdirectories
+#
 
-set(SAGE_HEADERS
-    "Run.hpp"
-)
-
-set(SAGE_SOURCES
-    "Run.cpp"
-)
-
-target_sources(SageEngine
-    PRIVATE
-        ${SAGE_HEADERS}
-        ${SAGE_SOURCES}
-)
+set(SAGE_THIRDPARTY_TARGETS "SageThirdParty" CACHE INTERNAL "")
 
 add_subdirectory(Core)
 add_subdirectory(ThirdParty)
+
+#
+# Add visibility properties to all relevant targets
+#
+
+set(_targets SageEngine ${SAGE_THIRDPARTY_TARGETS})
+
+set_target_properties(${_targets}
+    PROPERTIES
+        C_VISIBILITY_PRESET hidden
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN true
+        POSITION_INDEPENDENT_CODE true
+)
+
+if(SAGE_IPO_SUPPORTED)
+    set_target_properties(${_targets}
+        PROPERTIES
+            INTERPROCEDURAL_OPTIMIZATION true
+    )
+endif()
+
+target_link_libraries(SageEngine
+    PRIVATE
+        SageThirdParty
+)

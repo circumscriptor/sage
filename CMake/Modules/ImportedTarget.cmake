@@ -1,23 +1,36 @@
 #
-#
-# Project Sage
-#
+#   .oooooo..o       .o.         .oooooo.    oooooooooooo
+#  d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8
+#  Y88bo.          .8"888.     888            888
+#   `"Y8888o.     .8' `888.    888            888oooo8
+#       `"Y88b   .88ooo8888.   888     ooooo  888    "
+#  oo     .d8P  .8'     `888.  `88.    .88'   888       o
+#  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
 # TODO: Add platform subdirectories?
+#       e.g. ${DEPS_ROOT_DIR}/lib/windows/32/...
+#            ${DEPS_ROOT_DIR}/lib/linux/64/...
 
+#
 # Root directory
+#
 set(DEPS_ROOT_DIR "deps" CACHE PATH "Root directory for dependencies")
 
+#
 # Subdirectories
+#
 set(DEPS_INCLUDE_DIR "${DEPS_ROOT_DIR}/include")
 set(DEPS_LIBRARY_DIR "${DEPS_ROOT_DIR}/lib"    )
 set(DEPS_RUNTIME_DIR "${DEPS_ROOT_DIR}/bin"    )
 
 #
-# Helper macro
+# Helper macro for copying shared libraries
 #
-macro(_check_and_copy_dll release_file debug_file)
+# If CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> is not set, the file will not be copied.
+# Supported configurations: Release, Debug
+#
+macro(_check_and_copy_shared release_file debug_file)
     if(EXISTS "${DEPS_RUNTIME_DIR}/${release_file}")
         if(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE)
             file(COPY_FILE "${DEPS_RUNTIME_DIR}/${release_file}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${release_file}" ONLY_IF_DIFFERENT)
@@ -122,8 +135,7 @@ function(add_imported_target target_name)
     set(imported_static_release "${CMAKE_STATIC_LIBRARY_PREFIX}${release_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
     if(arg_SHARED)
-
-        _check_and_copy_dll(${imported_shared_release} ${imported_shared_debug})
+        _check_and_copy_shared(${imported_shared_release} ${imported_shared_debug})
 
         set_target_properties(${target_name}
             PROPERTIES
@@ -146,6 +158,10 @@ function(add_imported_target target_name)
         )
     endif()
 endfunction()
+
+#
+# Create the output directories if they do not exist
+#
 
 if(NOT EXISTS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}")
     file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}")

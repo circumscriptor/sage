@@ -13,12 +13,16 @@ cmake_minimum_required(VERSION 3.20)
 project(Sage)
 
 #
-# Settings
+# Set supported configuration types
 #
 
 set(CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE INTERNAL "Sage is build only with Release and Debug configs")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" CACHE INTERNAL "")
+#
+# Set output directories
+#
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}" CACHE INTERNAL "")
 
 if(MSVC)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug" CACHE INTERNAL "")
@@ -29,25 +33,44 @@ else()
 endif()
 
 #
-# Helper functions
+# Include modules
 #
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMake/Modules")
 
-# set(DEPS_ROOT_DIR "${CMAKE_CURRENT_BINARY_DIR}/deps")
 include(ImportedTarget)
 include(PlatformDefinitions)
+include(CheckIPOSupported)
 
 #
+# Check IPO/LTO support
+#
+
+check_ipo_supported(
+    RESULT _ipo_supported 
+    OUTPUT _ipo_supported_output
+    LANGUAGES C CXX
+)
+
+if(_ipo_supported)
+    set(SAGE_IPO_SUPPORTED TRUE CACHE INTERNAL "")
+    message(STATUS "Building with IPO/LTO")
+else()
+    set(SAGE_IPO_SUPPORTED FALSE CACHE INTERNAL "")
+endif()
+
+#
+# Import dependencies
+#
+
 # Import SDL2
-#
-
 add_imported_target(SDL2 SHARED
     ALIAS SDL2::SDL2
     BASE_NAME "SDL2"
     DEBUG_SUFFIX "d"
 )
 
+# Import SDL2main
 add_imported_target(SDL2main STATIC
     ALIAS SDL2::SDL2main
     BASE_NAME "SDL2main"
@@ -56,28 +79,20 @@ add_imported_target(SDL2main STATIC
 
 target_link_libraries(SDL2main INTERFACE SDL2::SDL2)
 
-#
 # Import EnTT
-#
-
 add_imported_target(EnTT INTERFACE
     ALIAS EnTT::EnTT
 )
 
-#
 # Import Edyn
-#
-
 add_imported_target(Edyn SHARED
     ALIAS Edyn::Edyn
     BASE_NAME "Edyn"
     DEBUG_SUFFIX "_d"
 )
 
-#
-# Import DiligentEngine
-#
 
+# Import DiligentCore headers
 add_imported_target(Diligent-Headers INTERFACE
     ALIAS Diligent::Headers
     INCLUDE_DIRS
@@ -96,6 +111,7 @@ add_imported_target(Diligent-Headers INTERFACE
         "Diligent/Graphics/Archiver/interface"
 )
 
+# Import DiligentCore OpenGL graphics engine
 if(GL_SUPPORTED OR GLES_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineOpenGL SHARED
         BASE_NAME "GraphicsEngineOpenGL"
@@ -104,6 +120,7 @@ if(GL_SUPPORTED OR GLES_SUPPORTED)
     )
 endif()
 
+# Import DiligentCore Vulkan graphics engine
 if(VULKAN_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineVulkan SHARED
         BASE_NAME "GraphicsEngineVk"
@@ -112,6 +129,7 @@ if(VULKAN_SUPPORTED)
     )
 endif()
 
+# Import DiligentCore Directx 11 graphics engine
 if(D3D11_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineD3D11 SHARED
         BASE_NAME "GraphicsEngineD3D11"
@@ -120,6 +138,7 @@ if(D3D11_SUPPORTED)
     )
 endif()
 
+# Import DiligentCore Directx 12 graphics engine
 if(D3D12_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineD3D12 SHARED
         BASE_NAME "GraphicsEngineD3D12"
@@ -128,40 +147,28 @@ if(D3D12_SUPPORTED)
     )
 endif()
 
-#
-# FreeType
-#
-
+# Import FreeType
 add_imported_target(FreeType SHARED
     ALIAS FreeType::FreeType
     BASE_NAME "freetype"
     DEBUG_SUFFIX "d"
 )
 
-#
-# RmlUI
-#
-
+# Import RmlUi
 add_imported_target(RmlCore SHARED
-    ALIAS RmlUI::Core
+    ALIAS RmlUi::Core
     BASE_NAME "RmlCore"
     DEBUG_SUFFIX "d"
 )
 
-#
-# fmt
-#
-
+# Import fmt
 add_imported_target(fmt SHARED
     ALIAS fmt::fmt
     BASE_NAME "fmt"
     DEBUG_SUFFIX "d"
 )
 
-#
-# spdlog
-#
-
+# Import spdlog
 add_imported_target(spdlog SHARED
     ALIAS spdlog::spdlog
     BASE_NAME "spdlog"
@@ -174,10 +181,6 @@ target_compile_definitions(spdlog
         SPDLOG_COMPILED_LIB
         SPDLOG_FMT_EXTERNAL
 )
-
-#
-#
-#
 
 #
 #

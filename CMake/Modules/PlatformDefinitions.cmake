@@ -1,7 +1,11 @@
 #
-#
-# Project Sage
-#
+#   .oooooo..o       .o.         .oooooo.    oooooooooooo
+#  d8P'    `Y8      .888.       d8P'  `Y8b   `888'     `8
+#  Y88bo.          .8"888.     888            888
+#   `"Y8888o.     .8' `888.    888            888oooo8
+#       `"Y88b   .88ooo8888.   888     ooooo  888    "
+#  oo     .d8P  .8'     `888.  `88.    .88'   888       o
+#  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
 #
@@ -12,7 +16,25 @@
 # Initialize options
 #
 
-set(_platform_opts "PLATFORM_WIN32;PLATFORM_UNIVERSAL_WINDOWS;PLATFORM_ANDROID;PLATFORM_LINUX;PLATFORM_MACOS;PLATFORM_IOS;PLATFORM_TVOS;PLATFORM_EMSCRIPTEN;D3D11_SUPPORTED;D3D12_SUPPORTED;GL_SUPPORTED;GLES_SUPPORTED;VULKAN_SUPPORTED;METAL_SUPPORTED;ARCHIVER_SUPPORTED")
+set(_platform_opts 
+    PLATFORM_WIN32
+    PLATFORM_UNIVERSAL_WINDOWS
+    PLATFORM_ANDROID
+    PLATFORM_LINUX
+    PLATFORM_MACOS
+    PLATFORM_IOS
+    PLATFORM_TVOS
+    PLATFORM_EMSCRIPTEN
+    D3D11_SUPPORTED
+    D3D12_SUPPORTED
+    GL_SUPPORTED
+    GLES_SUPPORTED
+    VULKAN_SUPPORTED
+    METAL_SUPPORTED
+    ARCHIVER_SUPPORTED
+    ARCH_32BIT
+    ARCH_64BIT
+)
 
 foreach(opt ${_platform_opts})
     set(${opt} FALSE CACHE INTERNAL "")
@@ -72,12 +94,14 @@ endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(ARCH 64 CACHE INTERNAL "64-bit architecture")
+    set(ARCH_64BIT TRUE CACHE INTERNAL "")
 else()
     set(ARCH 32 CACHE INTERNAL "32-bit architecture")
+    set(ARCH_32BIT TRUE CACHE INTERNAL "")
 endif()
 
 #
-# Add target
+# Add PlatformDefinitions target
 #
 
 add_library(PlatformDefinitions INTERFACE)

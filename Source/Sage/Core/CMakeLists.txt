@@ -15,12 +15,14 @@ set(SAGE_CORE_HEADERS
     "Engine.hpp"
     "Exports.hpp"
     "Timer.hpp"
+    "Run.hpp"
 )
 
 set(SAGE_CORE_SOURCES
     "Context.cpp"
     "Engine.cpp"
     "Timer.cpp"
+    "Run.cpp"
 )
 
 target_sources(SageEngine
