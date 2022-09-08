@@ -8,25 +8,21 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-set(SAGE_GRAPHICS_HEADERS
-    "GraphicsCVars.hpp"
-    "GraphicsContext.hpp"
-    "Internal/AddContextCreateInfo.hpp"
-    "Internal/DiligentDebugCallback.hpp"
-    "Internal/GetNativeWindow.hpp"
-    "Internal/GraphicsContextImpl.hpp"
-    "Internal/ModifyCreateInfo.hpp"
-)
-
-set(SAGE_GRAPHICS_SOURCES
-    "GraphicsCVars.cpp"
-    "GraphicsContext.cpp"
-)
-
 target_sources(SageCore
     PRIVATE
-        ${SAGE_GRAPHICS_HEADERS}
-        ${SAGE_GRAPHICS_SOURCES}
+        "GraphicsContext.cpp"
+        "GraphicsContext.hpp"
+        "GraphicsCVars.cpp"
+        "GraphicsCVars.hpp"
+        "Internal/AddContextCreateInfo.hpp"
+        "Internal/DiligentDebugCallback.hpp"
+        "Internal/GetNativeWindow.hpp"
+        "Internal/GraphicsContextImpl.hpp"
+        "Internal/ModifyCreateInfo.hpp"
+        "RenderTarget.hpp"
+        "RenderView.hpp"
+        "Window.cpp"
+        "Window.hpp"
 )
 
 add_subdirectory(ImGui)

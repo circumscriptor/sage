@@ -9,32 +9,13 @@
 //
 
 ///
-/// @file Window.hpp
+/// @file Window.cpp
 /// @brief ...
 ///
 /// @copyright Copyright (c) 2022
 ///
 ///
 
-#pragma once
+#include "Window.hpp"
 
-#include <Sage/Core/Graphics/GraphicsContext.hpp>
-#include <Sage/Core/Graphics/RenderView.hpp>
-
-namespace Sage::Core::Graphics {
-
-class Window {
-  public:
-
-    Window() {}
-
-    ~Window() {}
-
-  private:
-
-    SDL_Window* mWindow;
-
-    std::unique_ptr<IGraphicsContext> mGraphics;
-};
-
-} // namespace Sage::Core::Graphics
+namespace Sage::Core::Graphics {}

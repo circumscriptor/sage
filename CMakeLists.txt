@@ -148,7 +148,7 @@ if(VULKAN_SUPPORTED)
     )
 endif()
 
-# Import DiligentCore Directx 11 graphics engine
+# Import DiligentCore DirectX 11 graphics engine
 if(D3D11_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineD3D11 SHARED
         BASE_NAME "GraphicsEngineD3D11"
@@ -157,7 +157,7 @@ if(D3D11_SUPPORTED)
     )
 endif()
 
-# Import DiligentCore Directx 12 graphics engine
+# Import DiligentCore DirectX 12 graphics engine
 if(D3D12_SUPPORTED)
     add_imported_target(Diligent-GraphicsEngineD3D12 SHARED
         BASE_NAME "GraphicsEngineD3D12"

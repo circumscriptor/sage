@@ -8,18 +8,10 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-set(SAGE_GRAPHICS_IMGUI_HEADERS
-    "ImGuiInterface.hpp"
-    "ImGuiRenderer.hpp"
-    )
-    
-set(SAGE_GRAPHICS_IMGUI_SOURCES
-    "ImGuiInterface.cpp"
-    "ImGuiRenderer.cpp"
-)
-
 target_sources(SageCore
     PRIVATE
-        ${SAGE_GRAPHICS_IMGUI_HEADERS}
-        ${SAGE_GRAPHICS_IMGUI_SOURCES}
+        "ImGuiInterface.cpp"
+        "ImGuiInterface.hpp"
+        "ImGuiRenderer.cpp"
+        "ImGuiRenderer.hpp"
 )
