@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <Sage/Core/ClassDefinitions.hpp>
 #include <Sage/Core/Graphics/GraphicsContext.hpp>
 #include <Sage/Core/Graphics/RenderView.hpp>
 
@@ -26,15 +27,31 @@ namespace Sage::Core::Graphics {
 class Window {
   public:
 
-    Window() {}
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(Window)
 
-    ~Window() {}
+    enum Mode {
+        kWindowed,
+        kWindowedBorderless,
+        kFullScreen,
+        kFullScreenDesktop,
+        kFullScreenBorderless
+    };
+
+    struct CreateInfo {
+        UInt32 display;
+        UInt32 width;
+        UInt32 height;
+        Mode   mode;
+    };
+
+    explicit Window(const CreateInfo& createInfo);
+
+    ~Window();
 
   private:
 
-    SDL_Window* mWindow;
-
-    std::unique_ptr<IGraphicsContext> mGraphics;
+    SDL_Window*  mWindow;
+    NativeWindow mNativeWindow;
 };
 
 } // namespace Sage::Core::Graphics

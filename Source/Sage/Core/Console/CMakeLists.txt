@@ -8,12 +8,6 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-set(SAGE_CONSOLE_HEADERS
-)
-
-set(SAGE_CONSOLE_SOURCES
-)
-
 target_sources(SageCore
     PRIVATE
         "CVar.cpp"

@@ -14,8 +14,78 @@
 ///
 /// @copyright Copyright (c) 2022
 ///
-///
 
 #include "Window.hpp"
 
-namespace Sage::Core::Graphics {}
+#include <SDL2/SDL_error.h>
+#include <SDL2/SDL_video.h>
+#include <Sage/Core/Console/Log.hpp>
+#include <Sage/Core/Graphics/Internal/GetNativeWindow.hpp>
+
+#ifndef SAGE_WINDOW_TITLE
+    #define SAGE_WINDOW_TITLE "Sage"
+#endif
+
+#ifndef SAGE_DEFAULT_WINDOW_WIDTH
+    #define SAGE_DEFAULT_WINDOW_WIDTH 1280
+#endif
+
+#ifndef SAGE_DEFAULT_WINDOW_HEIGHT
+    #define SAGE_DEFAULT_WINDOW_HEIGHT 720
+#endif
+
+namespace Sage::Core::Graphics {
+
+using namespace Internal;
+
+Window::Window(const CreateInfo& createInfo) {
+    UInt32 flags = SDL_WINDOW_SHOWN;
+    UInt32 xPos  = SDL_WINDOWPOS_CENTERED_DISPLAY(createInfo.display);
+    UInt32 yPos  = SDL_WINDOWPOS_CENTERED_DISPLAY(createInfo.display);
+    UInt32 xRes  = createInfo.width;
+    UInt32 yRes  = createInfo.height;
+
+    if (xRes == 0 || yRes == 0) {
+        xRes = SAGE_DEFAULT_WINDOW_WIDTH;
+        yRes = SAGE_DEFAULT_WINDOW_HEIGHT;
+    }
+
+    switch (createInfo.mode) {
+        case kWindowed:
+            break;
+        case kWindowedBorderless:
+            flags |= UInt32(SDL_WINDOW_BORDERLESS);
+            break;
+        case kFullScreen:
+            flags |= UInt32(SDL_WINDOW_FULLSCREEN);
+            break;
+        case kFullScreenDesktop:
+            flags |= UInt32(SDL_WINDOW_FULLSCREEN_DESKTOP);
+            break;
+        case kFullScreenBorderless:
+            flags |= UInt32(SDL_WINDOW_BORDERLESS);
+            if (SDL_DisplayMode mode; SDL_GetDesktopDisplayMode(int(createInfo.display), &mode) == 0) {
+                xRes = mode.w;
+                yRes = mode.h;
+            } else {
+                SAGE_LOG_WARN("Cannot receive display mode. Error: {}", SDL_GetError());
+            }
+            break;
+    }
+
+    mWindow = SDL_CreateWindow(SAGE_WINDOW_TITLE, int(xPos), int(yPos), int(xRes), int(yRes), flags);
+    if (mWindow == nullptr) {
+        SAGE_LOG_ERROR("Failed to create window. Error: {}", SDL_GetError());
+        throw std::exception("failed to create window");
+    }
+
+    if (!GetNativeWindow(mWindow, mNativeWindow)) {
+        throw std::exception("failed to get native handle");
+    }
+}
+
+Window::~Window() {
+    SDL_DestroyWindow(mWindow);
+}
+
+} // namespace Sage::Core::Graphics

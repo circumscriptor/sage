@@ -20,6 +20,6 @@
 
 #include <Sage/Core/Engine.hpp>
 
-extern "C" int SageEngineRun(int /*argc*/, char** /*argv*/) {
+extern "C" int SageCoreEngineRun(int /*argc*/, char** /*argv*/) {
     return Sage::Core::Engine::Run() ? 0 : 1;
 }

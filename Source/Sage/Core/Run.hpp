@@ -22,5 +22,5 @@
 
 extern "C" {
     // TODO: Add third option for custom main script
-    SGAPI int SageEngineRun(int argc, char** argv);
+    SGAPI int SageCoreEngineRun(int argc, char** argv);
 }

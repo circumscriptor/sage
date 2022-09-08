@@ -16,11 +16,12 @@ target_sources(SageCore
         "GraphicsCVars.hpp"
         "Internal/AddContextCreateInfo.hpp"
         "Internal/DiligentDebugCallback.hpp"
+        "Internal/Enumerate.hpp"
         "Internal/GetNativeWindow.hpp"
-        "Internal/GraphicsContextImpl.hpp"
         "Internal/ModifyCreateInfo.hpp"
         "RenderTarget.hpp"
         "RenderView.hpp"
+        "SwapChain.hpp"
         "Window.cpp"
         "Window.hpp"
 )

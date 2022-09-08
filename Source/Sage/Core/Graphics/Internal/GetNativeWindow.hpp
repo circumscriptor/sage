@@ -28,7 +28,9 @@
 
 namespace Sage::Core::Graphics::Internal {
 
-static inline bool GetNativeWindow(SDL_Window* windowSDL, Diligent::NativeWindow& nativeWindow) {
+using namespace Diligent;
+
+static inline bool GetNativeWindow(SDL_Window* windowSDL, NativeWindow& nativeWindow) {
     SDL_SysWMinfo syswm{};
     SDL_VERSION(&syswm.version);
     if (SDL_GetWindowWMInfo(windowSDL, &syswm) == 0) {

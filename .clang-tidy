@@ -17,7 +17,8 @@ Checks: '
         -readability-magic-numbers,
         -cppcoreguidelines-pro-bounds-pointer-arithmetic,
         -bugprone-easily-swappable-parameters,
-        -cppcoreguidelines-non-private-member-variables-in-classes
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-pro-type-union-access
         '
 WarningsAsErrors: ''
 HeaderFilterRegex: ''

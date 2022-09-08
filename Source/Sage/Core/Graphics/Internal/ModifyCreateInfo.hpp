@@ -24,11 +24,13 @@
 
 namespace Sage::Core::Graphics::Internal {
 
-static inline void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                       deviceType,
-                                    Diligent::EngineCreateInfo&                        engineCI,
-                                    Diligent::SwapChainDesc&                           swapchainDesc,
-                                    std::vector<Diligent::GraphicsAdapterInfo>&        adapters,
-                                    std::vector<Diligent::ImmediateContextCreateInfo>& contextCIs) {
+using namespace Diligent;
+
+static inline bool ModifyCreateInfo(RENDER_DEVICE_TYPE                       deviceType,
+                                    EngineCreateInfo&                        engineCI,
+                                    SwapChainDesc&                           swapchainDesc,
+                                    std::vector<GraphicsAdapterInfo>&        adapters,
+                                    std::vector<ImmediateContextCreateInfo>& contextCIs) {
     (void) deviceType;
     (void) swapchainDesc;
 
@@ -78,6 +80,7 @@ static inline void ModifyCreateInfo(Diligent::RENDER_DEVICE_TYPE                
     engineCI.Features.NativeFence                   = Diligent::DEVICE_FEATURE_STATE_OPTIONAL;
     engineCI.Features.TimestampQueries              = Diligent::DEVICE_FEATURE_STATE_OPTIONAL;
     engineCI.Features.TransferQueueTimestampQueries = Diligent::DEVICE_FEATURE_STATE_OPTIONAL;
+    return true;
 }
 
 } // namespace Sage::Core::Graphics::Internal

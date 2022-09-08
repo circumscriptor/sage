@@ -16,9 +16,8 @@
 ///
 ///
 
-#include <SDL2/SDL_main.h>
 #include <Sage/Core/Run.hpp>
 
-int main(int argc, char** argv) {
-    return SageEngineRun(argc, argv);
+extern "C" int SDL_main(int argc, char** argv) {
+    return SageCoreEngineRun(argc, argv);
 }

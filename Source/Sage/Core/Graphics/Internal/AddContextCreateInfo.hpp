@@ -26,22 +26,24 @@
 
 namespace Sage::Core::Graphics::Internal {
 
-static inline bool AddContextCreateInfo(std::vector<Diligent::ImmediateContextCreateInfo>& contextCIs,
-                                        Diligent::GraphicsAdapterInfo&                     adapter,
-                                        const char*                                        name,
-                                        Diligent::COMMAND_QUEUE_TYPE                       queueType,
-                                        Diligent::QUEUE_PRIORITY                           queuePriority) {
+using namespace Diligent;
+
+static inline bool AddContextCreateInfo(std::vector<ImmediateContextCreateInfo>& contextCIs,
+                                        GraphicsAdapterInfo&                     adapter,
+                                        const char*                              name,
+                                        COMMAND_QUEUE_TYPE                       queueType,
+                                        QUEUE_PRIORITY                           queuePriority) {
     auto& queues = adapter.Queues;
-    for (Diligent::Uint32 i = 0, count = adapter.NumQueues; i < count; ++i) {
+    for (Uint32 i = 0, count = adapter.NumQueues; i < count; ++i) {
         auto& queue = queues[i];
 
         if (queue.MaxDeviceContexts == 0) {
             continue;
         }
 
-        if ((queue.QueueType & Diligent::COMMAND_QUEUE_TYPE_PRIMARY_MASK) == queueType) {
+        if ((queue.QueueType & COMMAND_QUEUE_TYPE_PRIMARY_MASK) == queueType) {
             queue.MaxDeviceContexts -= 1;
-            contextCIs.emplace_back(name, Diligent::Uint8(i), queuePriority);
+            contextCIs.emplace_back(name, Uint8(i), queuePriority);
             return true;
         }
     }

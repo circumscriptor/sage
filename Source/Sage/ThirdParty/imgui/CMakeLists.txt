@@ -8,13 +8,6 @@
 #  8""88888P'  o88o     o8888o  `Y8bood8P'   o888ooooood8
 #
 
-
-set(SAGE_THIRDPARTY_IMGUI_HEADERS
-)
-
-set(SAGE_THIRDPARTY_IMGUI_SOURCES
-)
-
 add_library(SageThirdPartyImGui OBJECT)
 
 target_sources(SageThirdPartyImGui

@@ -18,8 +18,6 @@
 
 #include "ImGuiRenderer.hpp"
 
-#include <BasicMath.hpp>
-#include <MapHelper.hpp>
 #include <array>
 
 static const char* VertexShaderHLSL = R"(
@@ -227,384 +225,14 @@ fragment PSOut ps_main(VSOut in [[stage_in]],
 
 using namespace Diligent;
 
-static float4 TransformClipRect(SURFACE_TRANSFORM surfacePreTransform, const ImVec2& DisplaySize, const float4& rect) {
-    switch (surfacePreTransform) {
-        case SURFACE_TRANSFORM_IDENTITY:
-            return rect;
-
-        case SURFACE_TRANSFORM_ROTATE_90: {
-            // The image content is rotated 90 degrees clockwise. The origin is in the left-top corner.
-            //
-            //                                                             DsplSz.y
-            //                a.x                                            -a.y     a.y     Old origin
-            //              0---->|                                       0------->|<------| /
-            //           0__|_____|____________________                0__|________|_______|/
-            //            | |     '                    |                | |        '       |
-            //        a.y | |     '                    |            a.x | |        '       |
-            //           _V_|_ _ _a____b               |               _V_|_ _d'___a'      |
-            //            A |     |    |               |                  |   |    |       |
-            //  DsplSz.y  | |     |____|               |                  |   |____|       |
-            //    -a.y    | |     d    c               |                  |   c'   b'      |
-            //           _|_|__________________________|                  |                |
-            //              A                                             |                |
-            //              |-----> Y'                                    |                |
-            //         New Origin                                         |________________|
-            //
-            float2 a{rect.x, rect.y};
-            float2 c{rect.z, rect.w};
-            return float4 //
-                {
-                    DisplaySize.y - c.y, // min_x = c'.x
-                    a.x,                 // min_y = a'.y
-                    DisplaySize.y - a.y, // max_x = a'.x
-                    c.x                  // max_y = c'.y
-                };
-        }
-
-        case SURFACE_TRANSFORM_ROTATE_180: {
-            // The image content is rotated 180 degrees clockwise. The origin is in the left-top corner.
-            //
-            //                a.x                                               DsplSz.x - a.x
-            //              0---->|                                         0------------------>|
-            //           0__|_____|____________________                 0_ _|___________________|______
-            //            | |     '                    |                  | |                   '      |
-            //        a.y | |     '                    |        DsplSz.y  | |              c'___d'     |
-            //           _V_|_ _ _a____b               |          -a.y    | |              |    |      |
-            //              |     |    |               |                 _V_|_ _ _ _ _ _ _ |____|      |
-            //              |     |____|               |                    |              b'   a'     |
-            //              |     d    c               |                    |                          |
-            //              |__________________________|                    |__________________________|
-            //                                         A                                               A
-            //                                         |                                               |
-            //                                     New Origin                                      Old Origin
-            float2 a{rect.x, rect.y};
-            float2 c{rect.z, rect.w};
-            return float4 //
-                {
-                    DisplaySize.x - c.x, // min_x = c'.x
-                    DisplaySize.y - c.y, // min_y = c'.y
-                    DisplaySize.x - a.x, // max_x = a'.x
-                    DisplaySize.y - a.y  // max_y = a'.y
-                };
-        }
-
-        case SURFACE_TRANSFORM_ROTATE_270: {
-            // The image content is rotated 270 degrees clockwise. The origin is in the left-top corner.
-            //
-            //              0  a.x     DsplSz.x-a.x   New Origin              a.y
-            //              |---->|<-------------------|                    0----->|
-            //          0_ _|_____|____________________V                 0 _|______|_________
-            //            | |     '                    |                  | |      '         |
-            //            | |     '                    |                  | |      '         |
-            //        a.y_V_|_ _ _a____b               |        DsplSz.x  | |      '         |
-            //              |     |    |               |          -a.x    | |      '         |
-            //              |     |____|               |                  | |      b'___c'   |
-            //              |     d    c               |                  | |      |    |    |
-            //  DsplSz.y _ _|__________________________|                 _V_|_ _ _ |____|    |
-            //                                                              |      a'   d'   |
-            //                                                              |                |
-            //                                                              |________________|
-            //                                                              A
-            //                                                              |
-            //                                                            Old origin
-            float2 a{rect.x, rect.y};
-            float2 c{rect.z, rect.w};
-            return float4 //
-                {
-                    a.y,                 // min_x = a'.x
-                    DisplaySize.x - c.x, // min_y = c'.y
-                    c.y,                 // max_x = c'.x
-                    DisplaySize.x - a.x  // max_y = a'.y
-                };
-        }
-
-        case SURFACE_TRANSFORM_OPTIMAL:
-            UNEXPECTED("SURFACE_TRANSFORM_OPTIMAL is only valid as parameter during swap chain initialization.");
-            return rect;
-
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270:
-            UNEXPECTED("Mirror transforms are not supported");
-            return rect;
-
-        default:
-            UNEXPECTED("Unknown transform");
-            return rect;
-    }
-}
-
 namespace Sage::Core::Graphics {
-
-ImGuiRenderer::ImGuiRenderer(std::shared_ptr<Internal::GraphicsContext> graphics,
-                             Uint32                                     initialVertexBufferSize,
-                             Uint32                                     initialIndexBufferSize) :
-    mGraphics{std::move(graphics)},
-    mBackBufferFormat{mGraphics->GetSwapchain()->GetDesc().ColorBufferFormat},
-    mDepthBufferFormat{mGraphics->GetSwapchain()->GetDesc().DepthBufferFormat},
-    mBaseVertexSupported{
-        bool(mGraphics->GetDevice()->GetAdapterInfo().DrawCommand.CapFlags & DRAW_COMMAND_CAP_FLAG_BASE_VERTEX)},
-    mVertexBufferSize{initialVertexBufferSize},
-    mIndexBufferSize{initialIndexBufferSize} {
-    // Set ImGui flags
-    IMGUI_CHECKVERSION();
-    ImGuiIO& imIO = ImGui::GetIO();
-
-    imIO.BackendRendererName = "ImGuiRenderer (Diligent Engine)";
-    if (mBaseVertexSupported) {
-        imIO.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-    }
-
-    // Initialize buffers
-    Create();
-}
-
-void ImGuiRenderer::NewFrame() noexcept {
-    const auto& SCDesc   = mGraphics->GetSwapchain()->GetDesc();
-    mRenderSurfaceWidth  = SCDesc.Width;
-    mRenderSurfaceHeight = SCDesc.Height;
-    mSurfacePreTransform = SCDesc.PreTransform;
-}
-
-void ImGuiRenderer::GrowVertexBuffer(ImDrawData* drawData) {
-    if (!mVertexBuffer || int(mVertexBufferSize) < drawData->TotalVtxCount) {
-        mVertexBuffer.Release();
-        while (int(mVertexBufferSize) < drawData->TotalVtxCount) {
-            mVertexBufferSize *= 2;
-        }
-
-        BufferDesc bufferDesc{"Imgui vertex buffer",
-                              mVertexBufferSize * sizeof(ImDrawVert),
-                              BIND_VERTEX_BUFFER,
-                              USAGE_DYNAMIC,
-                              CPU_ACCESS_WRITE};
-
-        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mVertexBuffer);
-    }
-}
-
-void ImGuiRenderer::GrowIndexBuffer(ImDrawData* drawData) {
-    if (!mIndexBuffer || int(mIndexBufferSize) < drawData->TotalIdxCount) {
-        mIndexBuffer.Release();
-        while (int(mIndexBufferSize) < drawData->TotalIdxCount) {
-            mIndexBufferSize *= 2;
-        }
-
-        BufferDesc bufferDesc{"Imgui index buffer",
-                              mIndexBufferSize * sizeof(ImDrawIdx),
-                              BIND_INDEX_BUFFER,
-                              USAGE_DYNAMIC,
-                              CPU_ACCESS_WRITE};
-
-        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mIndexBuffer);
-    }
-}
-
-void ImGuiRenderer::UpdateBuffers(IDeviceContext* context, ImDrawData* drawData) {
-    MapHelper<ImDrawVert> vertices{context, mVertexBuffer, MAP_WRITE, MAP_FLAG_DISCARD};
-    MapHelper<ImDrawIdx>  indices{context, mIndexBuffer, MAP_WRITE, MAP_FLAG_DISCARD};
-
-    ImDrawVert* vtxDst = vertices;
-    ImDrawIdx*  idxDst = indices;
-
-    for (Int32 cmdListID = 0; cmdListID < drawData->CmdListsCount; cmdListID++) {
-        const ImDrawList* cmdList = drawData->CmdLists[cmdListID];
-
-        std::memcpy(vtxDst, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
-        std::memcpy(idxDst, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
-
-        vtxDst += cmdList->VtxBuffer.Size;
-        idxDst += cmdList->IdxBuffer.Size;
-    }
-}
-
-void ImGuiRenderer::UpdateConstants(IDeviceContext* context, ImDrawData* drawData) {
-    float L = drawData->DisplayPos.x;
-    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
-    float T = drawData->DisplayPos.y;
-    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
-
-    float4x4 projection{
-        {   2.0F / (R - L),              0.0F, 0.0F, 0.0F},
-        {             0.0F,    2.0F / (T - B), 0.0F, 0.0F},
-        {             0.0F,              0.0F, 0.5F, 0.0F},
-        {(R + L) / (L - R), (T + B) / (B - T), 0.5F, 1.0F}
-    };
-
-    // Bake pre-transform into projection
-    switch (mSurfacePreTransform) {
-        case SURFACE_TRANSFORM_IDENTITY:
-            // Nothing to do
-            break;
-
-        case SURFACE_TRANSFORM_ROTATE_90:
-            // The image content is rotated 90 degrees clockwise.
-            projection *= float4x4::RotationZ(-PI_F * 0.5F);
-            break;
-
-        case SURFACE_TRANSFORM_ROTATE_180:
-            // The image content is rotated 180 degrees clockwise.
-            projection *= float4x4::RotationZ(-PI_F * 1.0F);
-            break;
-
-        case SURFACE_TRANSFORM_ROTATE_270:
-            // The image content is rotated 270 degrees clockwise.
-            projection *= float4x4::RotationZ(-PI_F * 1.5F);
-            break;
-
-        case SURFACE_TRANSFORM_OPTIMAL:
-            UNEXPECTED("SURFACE_TRANSFORM_OPTIMAL is only valid as parameter during swap chain initialization.");
-            break;
-
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180:
-        case SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270:
-            UNEXPECTED("Mirror transforms are not supported");
-            break;
-
-        default:
-            UNEXPECTED("Unknown transform");
-    }
-
-    // Upload to constant buffer
-    {
-        MapHelper<float4x4> cbData(context, mVertexConstantBuffer, MAP_WRITE, MAP_FLAG_DISCARD);
-        *cbData = projection;
-    }
-}
-
-void ImGuiRenderer::SetupRenderState(IDeviceContext* context, ImDrawData* drawData) {
-    std::array<IBuffer*, 1> vertexBuffers = {mVertexBuffer};
-    context->SetVertexBuffers(0,
-                              vertexBuffers.size(),
-                              vertexBuffers.data(),
-                              nullptr,
-                              RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
-                              SET_VERTEX_BUFFERS_FLAG_RESET);
-    context->SetIndexBuffer(mIndexBuffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-    context->SetPipelineState(mPSO);
-
-    const std::array<float, 4> blend_factor = {0.F, 0.F, 0.F, 0.F};
-    context->SetBlendFactors(blend_factor.data());
-
-    Viewport viewPort;
-    viewPort.Width    = static_cast<float>(mRenderSurfaceWidth) * drawData->FramebufferScale.x;
-    viewPort.Height   = static_cast<float>(mRenderSurfaceHeight) * drawData->FramebufferScale.y;
-    viewPort.MinDepth = 0.0F;
-    viewPort.MaxDepth = 1.0F;
-    viewPort.TopLeftX = viewPort.TopLeftY = 0;
-    context->SetViewports(1,
-                          &viewPort,
-                          Uint32(float(mRenderSurfaceWidth) * drawData->FramebufferScale.x),
-                          Uint32(float(mRenderSurfaceHeight) * drawData->FramebufferScale.y));
-}
-
-ITextureView* ImGuiRenderer::RenderCommands(IDeviceContext*     context,
-                                            ImDrawData*         drawData,
-                                            const ImDrawList*   cmdList,
-                                            const BufferOffset& globalOffset,
-                                            ITextureView*       lastTextureView) {
-    for (const ImDrawCmd& cmd : cmdList->CmdBuffer) {
-        if (cmd.UserCallback != nullptr) {
-            // User callback, registered via ImDrawList::AddCallback()
-            // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the
-            // renderer to reset render state.)
-            if (cmd.UserCallback == ImDrawCallback_ResetRenderState) {
-                SetupRenderState(context, drawData);
-            } else {
-                cmd.UserCallback(cmdList, &cmd);
-            }
-        } else {
-            // Apply scissor/clipping rectangle
-            float4 clipRect{
-                (cmd.ClipRect.x - drawData->DisplayPos.x) * drawData->FramebufferScale.x,
-                (cmd.ClipRect.y - drawData->DisplayPos.y) * drawData->FramebufferScale.y,
-                (cmd.ClipRect.z - drawData->DisplayPos.x) * drawData->FramebufferScale.x,
-                (cmd.ClipRect.w - drawData->DisplayPos.y) * drawData->FramebufferScale.y //
-            };
-
-            // Apply pre-transform
-            clipRect                         = TransformClipRect(mSurfacePreTransform, drawData->DisplaySize, clipRect);
-            std::array<Rect, 1> scissorRects = {
-                Rect{Int32(clipRect.x), Int32(clipRect.y), Int32(clipRect.z), Int32(clipRect.w)}
-            };
-            context->SetScissorRects(scissorRects.size(),
-                                     scissorRects.data(),
-                                     Uint32(float(mRenderSurfaceWidth) * drawData->FramebufferScale.x),
-                                     Uint32(float(mRenderSurfaceHeight) * drawData->FramebufferScale.y));
-            // Bind texture
-            auto* textureView = reinterpret_cast<ITextureView*>(cmd.TextureId);
-            VERIFY_EXPR(textureView);
-
-            if (textureView != lastTextureView) {
-                lastTextureView = textureView;
-                mTexture->Set(textureView);
-                context->CommitShaderResources(mSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-            }
-
-            DrawIndexedAttribs drawAttributes{cmd.ElemCount,
-                                              sizeof(ImDrawIdx) == sizeof(Uint16) ? VT_UINT16 : VT_UINT32,
-                                              DRAW_FLAG_VERIFY_STATES};
-
-            drawAttributes.FirstIndexLocation = cmd.IdxOffset + globalOffset.index;
-            if (mBaseVertexSupported) {
-                drawAttributes.BaseVertex = cmd.VtxOffset + globalOffset.vertex;
-            } else {
-                std::array<IBuffer*, 1> vertexBuffers = {mVertexBuffer};
-                std::array<Uint64, 1>   vtxOffsets    = {sizeof(ImDrawVert) *
-                                                         (size_t{cmd.VtxOffset} + size_t{globalOffset.vertex})};
-
-                context->SetVertexBuffers(0,
-                                          vertexBuffers.size(),
-                                          vertexBuffers.data(),
-                                          vtxOffsets.data(),
-                                          RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
-                                          SET_VERTEX_BUFFERS_FLAG_NONE);
-            }
-            context->DrawIndexed(drawAttributes);
-        }
-    }
-    return lastTextureView;
-}
-
-void ImGuiRenderer::RenderCommandLists(IDeviceContext* context, ImDrawData* drawData) {
-    BufferOffset globalOffset{0, 0};
-
-    ITextureView* lastTextureView = nullptr;
-    for (Int32 cmdListID = 0; cmdListID < drawData->CmdListsCount; cmdListID++) {
-        const ImDrawList* cmdList = drawData->CmdLists[cmdListID];
-
-        lastTextureView = RenderCommands(context, drawData, cmdList, globalOffset, lastTextureView);
-
-        globalOffset.index += cmdList->IdxBuffer.Size;
-        globalOffset.vertex += cmdList->VtxBuffer.Size;
-    }
-}
-
-void ImGuiRenderer::RenderDrawData(ImDrawData* drawData) {
-    // Avoid rendering when minimized
-    if (drawData->DisplaySize.x <= 0.0F || drawData->DisplaySize.y <= 0.0F) {
-        return;
-    }
-
-    IDeviceContext* context = mGraphics->GetContext(0);
-
-    GrowVertexBuffer(drawData);
-    GrowIndexBuffer(drawData);
-    UpdateBuffers(context, drawData);
-    UpdateConstants(context, drawData);
-    SetupRenderState(context, drawData);
-    RenderCommandLists(context, drawData);
-}
 
 void ImGuiRenderer::CreatePSO() {
     ShaderCreateInfo shaderCI;
     shaderCI.UseCombinedTextureSamplers = true;
     shaderCI.SourceLanguage             = SHADER_SOURCE_LANGUAGE_DEFAULT;
 
-    const auto DeviceType = mGraphics->GetDevice()->GetDeviceInfo().Type;
+    const auto DeviceType = mDevice->GetDeviceInfo().Type;
 
     RefCntAutoPtr<IShader> vertexShader;
     {
@@ -634,7 +262,7 @@ void ImGuiRenderer::CreatePSO() {
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        mGraphics->GetDevice()->CreateShader(shaderCI, &vertexShader);
+        mDevice->CreateShader(shaderCI, &vertexShader);
     }
 
     RefCntAutoPtr<IShader> pixelShader;
@@ -665,7 +293,7 @@ void ImGuiRenderer::CreatePSO() {
             default:
                 UNEXPECTED("Unknown render device type");
         }
-        mGraphics->GetDevice()->CreateShader(shaderCI, &pixelShader);
+        mDevice->CreateShader(shaderCI, &pixelShader);
     }
 
     GraphicsPipelineStateCreateInfo psoCI;
@@ -674,7 +302,7 @@ void ImGuiRenderer::CreatePSO() {
     auto& pipeline     = psoCI.GraphicsPipeline;
 
     pipeline.NumRenderTargets             = 1;
-    pipeline.RTVFormats[0]                = mBackBufferFormat;
+    pipeline.RTVFormats[0]                = mColorBufferFormat;
     pipeline.DSVFormat                    = mDepthBufferFormat;
     pipeline.PrimitiveTopology            = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipeline.RasterizerDesc.CullMode      = CULL_MODE_NONE;
@@ -722,15 +350,15 @@ void ImGuiRenderer::CreatePSO() {
     psoCI.PSODesc.ResourceLayout.ImmutableSamplers    = kImmutableSamplers.data();
     psoCI.PSODesc.ResourceLayout.NumImmutableSamplers = kImmutableSamplers.size();
 
-    mGraphics->GetDevice()->CreateGraphicsPipelineState(psoCI, &mPSO);
+    mDevice->CreateGraphicsPipelineState(psoCI, &mPipeline);
 }
 
 void ImGuiRenderer::CreateCB() {
     {
         BufferDesc bufferDesc{nullptr, sizeof(float4x4), BIND_UNIFORM_BUFFER, USAGE_DYNAMIC, CPU_ACCESS_WRITE};
-        mGraphics->GetDevice()->CreateBuffer(bufferDesc, nullptr, &mVertexConstantBuffer);
+        mDevice->CreateBuffer(bufferDesc, nullptr, &mVertexConstantBuffer);
     }
-    mPSO->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(mVertexConstantBuffer);
+    mPipeline->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants")->Set(mVertexConstantBuffer);
 }
 
 void ImGuiRenderer::CreateTexture() {
@@ -757,22 +385,16 @@ void ImGuiRenderer::CreateTexture() {
     TextureData textureData{mip0Data.data(), mip0Data.size()};
 
     RefCntAutoPtr<ITexture> texture;
-    mGraphics->GetDevice()->CreateTexture(textureDesc, &textureData, &texture);
+    mDevice->CreateTexture(textureDesc, &textureData, &texture);
     mFontSRV = texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
 
     mSRB.Release();
-    mPSO->CreateShaderResourceBinding(&mSRB, true);
+    mPipeline->CreateShaderResourceBinding(&mSRB, true);
     mTexture = mSRB->GetVariableByName(SHADER_TYPE_PIXEL, "Texture");
     VERIFY_EXPR(m_pTextureVar != nullptr);
 
     // Store identifier
     imIO.Fonts->TexID = (ImTextureID) mFontSRV;
-}
-
-void ImGuiRenderer::Create() {
-    CreatePSO();
-    CreateCB();
-    CreateTexture();
 }
 
 } // namespace Sage::Core::Graphics

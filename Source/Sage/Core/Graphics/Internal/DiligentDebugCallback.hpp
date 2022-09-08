@@ -25,25 +25,27 @@
 
 namespace Sage::Core::Graphics::Internal {
 
-static inline spdlog::level::level_enum DebugMessageSeverityToLogLevel(Diligent::DEBUG_MESSAGE_SEVERITY severity) {
+using namespace Diligent;
+
+static inline spdlog::level::level_enum DebugMessageSeverityToLogLevel(DEBUG_MESSAGE_SEVERITY severity) {
     switch (severity) {
-        case Diligent::DEBUG_MESSAGE_SEVERITY_INFO:
+        case DEBUG_MESSAGE_SEVERITY_INFO:
             return spdlog::level::info;
-        case Diligent::DEBUG_MESSAGE_SEVERITY_WARNING:
+        case DEBUG_MESSAGE_SEVERITY_WARNING:
             return spdlog::level::warn;
-        case Diligent::DEBUG_MESSAGE_SEVERITY_ERROR:
+        case DEBUG_MESSAGE_SEVERITY_ERROR:
             return spdlog::level::err;
-        case Diligent::DEBUG_MESSAGE_SEVERITY_FATAL_ERROR:
+        case DEBUG_MESSAGE_SEVERITY_FATAL_ERROR:
             return spdlog::level::critical;
     }
     return spdlog::level::debug;
 }
 
-static void DiligentDebugCallback(enum Diligent::DEBUG_MESSAGE_SEVERITY severity,
-                                  const char*                           message,
-                                  [[maybe_unused]] const char*          function,
-                                  [[maybe_unused]] const char*          file,
-                                  [[maybe_unused]] int                  line) {
+static void DiligentDebugCallback(enum DEBUG_MESSAGE_SEVERITY severity,
+                                  const char*                 message,
+                                  const char*                 function,
+                                  const char*                 file,
+                                  int                         line) {
     auto level = DebugMessageSeverityToLogLevel(severity);
     if (function != nullptr && file != nullptr) {
         SAGE_LOG(level, "[diligent] [{}:{}] ({}) {}", file, line, function, message);

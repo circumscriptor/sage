@@ -18,12 +18,10 @@
 
 #pragma once
 
-#include "GraphicsCVars.hpp"
-#include "Sage/Core/Graphics/GraphicsContext.hpp"
-
 #include <Sage/Core/BasicTypes.hpp>
-#include <Sage/Core/Console/CVarManager.hpp>
-#include <Sage/Core/Console/VirtualConsole.hpp>
+#include <Sage/Core/ClassDefinitions.hpp>
+#include <Sage/Core/Console/Log.hpp>
+#include <Sage/Core/Graphics/SwapChain.hpp>
 
 // Diligent
 #include <DeviceContext.h>
@@ -35,45 +33,197 @@
 
 // stdlib
 #include <array>
+#include <vector>
 
 struct SDL_Window;
 
 namespace Sage::Core::Graphics {
 
-class IGraphicsContext {
+using namespace Diligent;
+
+///
+/// @brief Graphics context. Stores factory, render device and device contexts
+///
+///
+class GraphicsContext {
   public:
 
-    static constexpr std::array<float, 4> kClearColor{0.F, 0.F, 0.F, 1.F}; //!< Default clear color
+    SAGE_CLASS_DELETE_COPY_AND_MOVE(GraphicsContext)
 
-    SAGE_CLASS_DELETE(IGraphicsContext)
+    ///
+    /// @brief Array of render device types
+    ///
+    ///
+    static constexpr std::array<RENDER_DEVICE_TYPE, RENDER_DEVICE_TYPE_COUNT> kDeviceTypes = {
+        RENDER_DEVICE_TYPE_UNDEFINED, // Undefined
+        RENDER_DEVICE_TYPE_D3D11,     // DirectX 11
+        RENDER_DEVICE_TYPE_D3D12,     // DirectX 12
+        RENDER_DEVICE_TYPE_GL,        // OpenGL
+        RENDER_DEVICE_TYPE_GLES,      // OpenGL ES
+        RENDER_DEVICE_TYPE_VULKAN,    // Vulkan
+        RENDER_DEVICE_TYPE_METAL      // Metal
+    };
 
-    IGraphicsContext(std::shared_ptr<Console::IVirtualConsole> console, Console::IVirtualConsole::ContextID contextID) :
-        mConsole{std::move(console)},
-        mContextID{contextID} {
-        mConsole->RegisterVolatile(contextID, mCVars);
+    ///
+    /// @brief Construct a new GraphicsContext object
+    ///
+    ///
+    GraphicsContext() = default;
+
+    ///
+    /// @brief Destroy the GraphicsContext object
+    ///
+    ///
+    ~GraphicsContext() = default;
+
+    ///
+    /// @brief Initialize graphics context and create swap chain
+    ///
+    /// @param nativeWindow Native window handle
+    /// @param deviceType Device type
+    /// @param validationLevel Validation level
+    /// @param retryInit Retry initialization with different device type
+    /// @return Swap chain
+    ///
+    SwapChain Initialize(const NativeWindow& nativeWindow,
+                         RENDER_DEVICE_TYPE  deviceType,
+                         VALIDATION_LEVEL    validationLevel = VALIDATION_LEVEL_DISABLED,
+                         bool                retryInit       = false) {
+        RefCntAutoPtr<ISwapChain> swapChain;
+
+        // TODO: Add preferred adapter
+
+        Result result = kNoError;
+        if (IsDeviceTypeSupported(deviceType)) {
+            result = InitializeGraphics(nativeWindow, deviceType, validationLevel, &swapChain);
+            if (result != kNoError && !retryInit) {
+                throw std::exception("failed to initialize graphics context");
+            }
+        } else {
+            result = kInvalidDeviceType;
+        }
+
+        if (result != kNoError) {
+            for (auto type : kDeviceTypes) {
+                if (type == deviceType || !IsDeviceTypeSupported(type)) {
+                    continue;
+                }
+
+                // TODO: Retry different adapters
+
+                SAGE_LOG_INFO("Trying to initialize graphics context. API: {}", DeviceTypeToString(deviceType));
+                result = InitializeGraphics(nativeWindow, type, validationLevel, &swapChain);
+                if (result == kNoError) {
+                    break;
+                }
+            }
+            throw std::exception("failed to initialize graphics context after retrying");
+        }
+
+        return SwapChain{mContexts[0], swapChain};
     }
 
-    virtual ~IGraphicsContext() = default;
+    ///
+    /// @brief Create swap chain (not supported on OpenGL and OpenGL ES backends)
+    ///
+    /// @param nativeWindow Native window
+    /// @param ctx Immediate context to use (offset to mContexts)
+    /// @return Swap chain
+    ///
+    SwapChain CreateSwapChain(const NativeWindow& nativeWindow, UInt32 ctx);
 
-    virtual void Clear() = 0;
+    ///
+    /// @brief Get render device
+    ///
+    /// @return Render device
+    ///
+    [[nodiscard]] IRenderDevice* GetDevice() {
+        return mDevice;
+    }
 
-    virtual void Present() = 0;
+    ///
+    /// @brief Get number of initialized device contexts
+    ///
+    /// @return Number of device contexts
+    ///
+    [[nodiscard]] UInt32 ContextsCount() const {
+        return mContexts.size();
+    }
 
-    static std::shared_ptr<IGraphicsContext> CreateInstance(std::shared_ptr<Console::IVirtualConsole> console,
-                                                            Console::IVirtualConsole::ContextID       contextID,
-                                                            std::shared_ptr<IGraphicsContext>         base = nullptr);
+    ///
+    /// @brief Get number of initialized immediate device contexts
+    ///
+    /// @return Number of immediate device contexts
+    ///
+    [[nodiscard]] UInt32 ImmediateContextsCount() const {
+        return mImmediateContextsCount;
+    }
+
+    ///
+    /// @brief Get device context
+    ///
+    /// @param index Index of device context
+    /// @return Device context
+    ///
+    [[nodiscard]] IDeviceContext* GetContext(UInt32 index) {
+        // TODO: Assert index < ContextsCount()
+        return mContexts[index];
+    }
+
+    ///
+    /// @brief Convert device type to string
+    ///
+    /// @param deviceType Device type
+    /// @return Null-terminated string
+    ///
+    static const char* DeviceTypeToString(RENDER_DEVICE_TYPE deviceType) {
+        switch (deviceType) {
+            case RENDER_DEVICE_TYPE_GL:
+                return "OpenGL";
+            case RENDER_DEVICE_TYPE_GLES:
+                return "OpenGL ES";
+            case RENDER_DEVICE_TYPE_VULKAN:
+                return "Vulkan";
+            case RENDER_DEVICE_TYPE_D3D11:
+                return "DirectX 11";
+            case RENDER_DEVICE_TYPE_D3D12:
+                return "DirectX 12";
+            case RENDER_DEVICE_TYPE_METAL:
+                return "Metal";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    ///
+    /// @brief Check whether device type is supported
+    ///
+    /// @param deviceType Device type
+    /// @return true if device type is supported
+    ///
+    static bool IsDeviceTypeSupported(RENDER_DEVICE_TYPE deviceType);
 
   private:
 
-    std::shared_ptr<Console::IVirtualConsole> mConsole;
-    const Console::IVirtualConsole::ContextID mContextID;
-    GraphicsCVars                             mCVars;
+    enum Result {
+        kNoError,
+        kFailedLibrary,
+        kNoAdapters,
+        kFailedModifyCI,
+        kFailedRenderDevice,
+        kFailedSwapchain,
+        kInvalidDeviceType
+    };
 
-  protected:
+    Result InitializeGraphics(const NativeWindow& nativeWindow,
+                              RENDER_DEVICE_TYPE  deviceType,
+                              VALIDATION_LEVEL    validationLevel,
+                              ISwapChain**        swapChain);
 
-    [[nodiscard]] GraphicsCVars& CVars() noexcept {
-        return mCVars;
-    }
+    RefCntAutoPtr<IEngineFactory>              mFactory;
+    RefCntAutoPtr<IRenderDevice>               mDevice;
+    std::vector<RefCntAutoPtr<IDeviceContext>> mContexts;
+    UInt32                                     mImmediateContextsCount{};
 };
 
 } // namespace Sage::Core::Graphics
