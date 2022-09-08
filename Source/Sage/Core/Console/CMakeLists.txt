@@ -9,21 +9,19 @@
 #
 
 set(SAGE_CONSOLE_HEADERS
-    "Log.hpp"
-    "CVar.hpp"
-    "CVarManager.hpp"
-    "VirtualConsole.hpp"
 )
 
 set(SAGE_CONSOLE_SOURCES
-    "Log.cpp"
-    "CVar.cpp"
-    "CVarManager.cpp"
-    "VirtualConsole.cpp"
 )
 
 target_sources(SageCore
     PRIVATE
-        ${SAGE_CONSOLE_HEADERS}
-        ${SAGE_CONSOLE_SOURCES}
+        "CVar.cpp"
+        "CVar.hpp"
+        "CVarManager.cpp"
+        "CVarManager.hpp"
+        "Log.cpp"
+        "Log.hpp"
+        "VirtualConsole.cpp"
+        "VirtualConsole.hpp"
 )

@@ -10,30 +10,28 @@
 
 
 set(SAGE_THIRDPARTY_IMGUI_HEADERS
-    "imconfig.h"
-    "imgui_internal.h"
-    "imgui.h"
-    "imstb_rectpack.h"
-    "imstb_textedit.h"
-    "imstb_truetype.h"
-    "misc/cpp/imgui_stdlib.h"
 )
 
 set(SAGE_THIRDPARTY_IMGUI_SOURCES
-    "imgui_draw.cpp"
-    "imgui_tables.cpp"
-    "imgui_widgets.cpp"
-    "imgui.cpp"
-    "imgui.cpp"
-    "misc/cpp/imgui_stdlib.cpp"
 )
 
 add_library(SageThirdPartyImGui OBJECT)
 
 target_sources(SageThirdPartyImGui
     PRIVATE
-        ${SAGE_THIRDPARTY_IMGUI_HEADERS}
-        ${SAGE_THIRDPARTY_IMGUI_SOURCES}
+        "imconfig.h"
+        "imgui_draw.cpp"
+        "imgui_internal.h"
+        "imgui_tables.cpp"
+        "imgui_widgets.cpp"
+        "imgui.cpp"
+        "imgui.cpp"
+        "imgui.h"
+        "imstb_rectpack.h"
+        "imstb_textedit.h"
+        "imstb_truetype.h"
+        "misc/cpp/imgui_stdlib.cpp"
+        "misc/cpp/imgui_stdlib.h"
 )
 
 target_link_libraries(SageThirdPartyImGui

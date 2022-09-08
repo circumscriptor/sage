@@ -10,17 +10,9 @@
 
 add_executable(SageLaunch)
 
-set(SAGE_LAUNCH_HEADERS
-)
-
-set(SAGE_LAUNCH_SOURCES
-    "Main.cpp"
-)
-
 target_sources(SageLaunch
     PRIVATE
-        ${SAGE_LAUNCH_HEADERS}
-        ${SAGE_LAUNCH_SOURCES}
+        "Main.cpp"
 )
 
 target_link_libraries(SageLaunch

@@ -9,19 +9,17 @@
 #
 
 set(SAGE_THIRDPARTY_LIBCFG_HEADERS
-    "cfg.hpp"
 )
 
 set(SAGE_THIRDPARTY_LIBCFG_SOURCES
-    "cfg.cpp"
 )
 
 add_library(SageThirdPartyLibCfg OBJECT)
 
 target_sources(SageThirdPartyLibCfg
     PRIVATE
-        ${SAGE_THIRDPARTY_LIBCFG_HEADERS}
-        ${SAGE_THIRDPARTY_LIBCFG_SOURCES}
+        "cfg.cpp"
+        "cfg.hpp"
 )
 
 target_link_libraries(SageThirdPartyLibCfg

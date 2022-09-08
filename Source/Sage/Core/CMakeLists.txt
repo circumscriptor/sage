@@ -36,28 +36,20 @@ target_link_libraries(SageCore
 # Add sources
 #
 
-set(SAGE_CORE_HEADERS
-    "BasicTypes.hpp"
-    "ClassDefinitions.hpp"
-    "Context.hpp"
-    "Engine.hpp"
-    "Exports.hpp"
-    "Timer.hpp"
-    "Run.hpp"
-)
-
-set(SAGE_CORE_SOURCES
-    "Context.cpp"
-    "Engine.cpp"
-    "Exports.cpp"
-    "Timer.cpp"
-    "Run.cpp"
-)
-
 target_sources(SageCore
     PRIVATE
-        ${SAGE_CORE_HEADERS}
-        ${SAGE_CORE_SOURCES}
+        "BasicTypes.hpp"
+        "ClassDefinitions.hpp"
+        "Context.cpp"
+        "Context.hpp"
+        "Engine.cpp"
+        "Engine.hpp"
+        "Exports.cpp"
+        "Exports.hpp"
+        "Run.cpp"
+        "Run.hpp"
+        "Timer.cpp"
+        "Timer.hpp"
 )
 
 #
