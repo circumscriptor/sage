@@ -21,5 +21,5 @@
 #include <Sage/Core/BasicTypes.hpp>
 
 extern "C" {
-    SAGE_SYMBOL_EXPORT extern const Sage::Core::UInt32 NvOptimusEnablement = 1;
+    SAGE_SYMBOL_EXPORT extern const std::uint32_t NvOptimusEnablement = 1;
 }

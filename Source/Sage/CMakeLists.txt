@@ -17,7 +17,6 @@ set(SAGE_EXECUTABLES "" CACHE INTERNAL "")
 
 add_subdirectory(Core)
 add_subdirectory(Launch)
-add_subdirectory(ThirdParty)
 
 #
 # Add visibility properties to all relevant targets

@@ -34,7 +34,7 @@ target_compile_definitions(SageCommonPublic
 
 target_compile_features(SageCommonPublic
     INTERFACE
-        cxx_std_17
+        cxx_std_20
 )
 
 target_link_libraries(SageCommonPrivate

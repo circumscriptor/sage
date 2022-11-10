@@ -18,17 +18,20 @@
 
 #include "Path.hpp"
 
-#include <SDL2/SDL_filesystem.h>
-#include <SDL2/SDL_rwops.h>
+#include <SDL2/SDL.h>
 #include <Sage/Core/Console/Log.hpp>
 #include <algorithm>
+#include <cstdlib>
+#include <filesystem>
+#include <string>
+#include <system_error>
 
 #ifndef SAGE_DEFAULT_BASE_PATH
-    #define SAGE_DEFAULT_BASE_PATH ""
+    #define SAGE_DEFAULT_BASE_PATH "."
 #endif
 
 #ifndef SAGE_DEFAULT_USER_PATH
-    #define SAGE_DEFAULT_USER_PATH ""
+    #define SAGE_DEFAULT_USER_PATH "."
 #endif
 
 #ifndef SAGE_GLOBAL_LOG_FILE_NAME
@@ -51,7 +54,7 @@ namespace Sage::Core::IO {
 
 // NOTE: Using '/' instead of '\\', because some dependencies cannot handle '\\'
 
-std::string Path::GetBasePath() {
+auto Path::GetBasePath() -> std::string {
     char*       basePath = SDL_GetBasePath();
     std::string path     = basePath == nullptr ? SAGE_DEFAULT_BASE_PATH : basePath;
     std::replace(path.begin(), path.end(), '\\', '/');
@@ -59,7 +62,7 @@ std::string Path::GetBasePath() {
     return path;
 }
 
-std::string Path::GetUserPath() {
+auto Path::GetUserPath() -> std::string {
     char*       userPath = SDL_GetPrefPath(SAGE_ORG_NAME, SAGE_APP_NAME);
     std::string path     = userPath == nullptr ? SAGE_DEFAULT_USER_PATH : userPath;
     std::replace(path.begin(), path.end(), '\\', '/');
@@ -67,33 +70,24 @@ std::string Path::GetUserPath() {
     return path;
 }
 
-std::string_view Path::Base() {
+auto Path::Base() -> std::string_view {
     static const std::string sBasePath = GetBasePath();
     return sBasePath;
 }
 
-std::string_view Path::User() {
+auto Path::User() -> std::string_view {
     static const std::string sUserPath = GetUserPath();
     return sUserPath;
 }
 
-std::string_view Path::Log() {
-    static const std::string sLogPath = fmt::format("{}{}", User(), SAGE_GLOBAL_LOG_FILE_NAME);
+auto Path::Log() -> std::string_view {
+    static const std::string sLogPath = fmt::format("{}/{}", User(), SAGE_GLOBAL_LOG_FILE_NAME);
     return sLogPath;
 }
 
-std::string_view Path::Config() {
-    static const std::string sConfigPath = fmt::format("{}{}", User(), SAGE_GLOBAL_CONFIG_FILE_NAME);
+auto Path::Config() -> std::string_view {
+    static const std::string sConfigPath = fmt::format("{}/{}", User(), SAGE_GLOBAL_CONFIG_FILE_NAME);
     return sConfigPath;
-}
-
-bool Path::IsFile(std::string_view path) {
-    auto* RWops = SDL_RWFromFile(path.data(), "r");
-    if (RWops == nullptr) {
-        return false;
-    }
-    SDL_RWclose(RWops);
-    return true;
 }
 
 } // namespace Sage::Core::IO

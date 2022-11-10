@@ -10,7 +10,6 @@
 
 target_sources(SageCore
     PRIVATE
-        "Internal/FileIOCallbacksSDL.hpp"
         "Path.cpp"
         "Path.hpp"
 )

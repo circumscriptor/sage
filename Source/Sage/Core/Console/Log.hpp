@@ -17,7 +17,7 @@ class Log {
 
     ~Log();
 
-    [[nodiscard]] std::shared_ptr<spdlog::logger> Logger() const {
+    [[nodiscard]] auto Logger() const -> std::shared_ptr<spdlog::logger> {
         return mLogger;
     }
 
@@ -26,7 +26,7 @@ class Log {
     ///
     /// @return Global logger
     ///
-    static Log& Get() {
+    static auto Get() -> Log& {
         static Log sLog;
         return sLog;
     }
@@ -43,6 +43,7 @@ class Log {
 
 } // namespace Sage::Core::Console
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #if SAGE_LOG_SOURCE
     #define SAGE_LOG(level, ...) SPDLOG_LOGGER_CALL(Sage::Core::Console::Log::Get().Logger(), level, __VA_ARGS__)
 #else
@@ -55,3 +56,4 @@ class Log {
 #define SAGE_LOG_WARN(...)     SAGE_LOG(spdlog::level::warn, __VA_ARGS__)
 #define SAGE_LOG_ERROR(...)    SAGE_LOG(spdlog::level::err, __VA_ARGS__)
 #define SAGE_LOG_CRITICAL(...) SAGE_LOG(spdlog::level::critical, __VA_ARGS__)
+// NOLINTEND(cppcoreguidelines-macro-usage)

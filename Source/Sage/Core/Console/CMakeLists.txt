@@ -10,12 +10,6 @@
 
 target_sources(SageCore
     PRIVATE
-        "CVar.cpp"
-        "CVar.hpp"
-        "CVarManager.cpp"
-        "CVarManager.hpp"
         "Log.cpp"
         "Log.hpp"
-        "VirtualConsole.cpp"
-        "VirtualConsole.hpp"
 )

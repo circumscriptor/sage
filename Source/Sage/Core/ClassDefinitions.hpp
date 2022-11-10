@@ -22,8 +22,8 @@
 #define SAGE_CLASS_DESTRUCTOR(ClassName, Definition)          ~ClassName() = Definition;
 #define SAGE_CLASS_COPY_CONSTRUCTOR(ClassName, Definition)    ClassName(const ClassName&) = Definition;
 #define SAGE_CLASS_MOVE_CONSTRUCTOR(ClassName, Definition)    ClassName(ClassName&&) = Definition;
-#define SAGE_CLASS_COPY_ASSIGN(ClassName, Definition)         ClassName& operator=(const ClassName&) = Definition;
-#define SAGE_CLASS_MOVE_ASSIGN(ClassName, Definition)         ClassName& operator=(ClassName&&) = Definition;
+#define SAGE_CLASS_COPY_ASSIGN(ClassName, Definition)         auto operator=(const ClassName&)->ClassName& = Definition;
+#define SAGE_CLASS_MOVE_ASSIGN(ClassName, Definition)         auto operator=(ClassName&&)->ClassName& = Definition;
 
 #define SAGE_CLASS_COPY(ClassName, Definition)                                                                         \
     SAGE_CLASS_COPY_CONSTRUCTOR(ClassName, Definition)                                                                 \

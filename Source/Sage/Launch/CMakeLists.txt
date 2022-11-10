@@ -19,8 +19,6 @@ target_link_libraries(SageLaunch
     PRIVATE
         SageCommonPrivate
         SageCore
-
-        SDL2::SDL2main
 )
 
 # Add to the list of executables

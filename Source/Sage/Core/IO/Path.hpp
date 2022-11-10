@@ -25,21 +25,19 @@ namespace Sage::Core::IO {
 class Path {
   public:
 
-    static std::string_view Base();
+    static auto Base() -> std::string_view;
 
-    static std::string_view User();
+    static auto User() -> std::string_view;
 
-    static std::string_view Log();
+    static auto Log() -> std::string_view;
 
-    static std::string_view Config();
-
-    static bool IsFile(std::string_view path);
+    static auto Config() -> std::string_view;
 
   private:
 
-    static std::string GetBasePath();
+    static auto GetBasePath() -> std::string;
 
-    static std::string GetUserPath();
+    static auto GetUserPath() -> std::string;
 };
 
 } // namespace Sage::Core::IO

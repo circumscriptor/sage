@@ -12,24 +12,12 @@
 # Add SageCore library
 #
 
-set(SAGE_CORE_DEPS
-    Diligent::Headers
-    SDL2::SDL2
-    EnTT::EnTT
-    Edyn::Edyn
-    fmt::fmt
-    spdlog::spdlog
-)
-
 add_library(SageCore STATIC)
+conan_target_link_libraries(SageCore)
 
 target_link_libraries(SageCore
-    PUBLIC
-        SageCommonPublic
-    PRIVATE
-        SageCommonPrivate
-        SageThirdParty
-        ${SAGE_CORE_DEPS}
+    SageCommonPublic
+    SageCommonPrivate
 )
 
 #
@@ -40,15 +28,8 @@ target_sources(SageCore
     PRIVATE
         "BasicTypes.hpp"
         "ClassDefinitions.hpp"
-        "Context.cpp"
-        "Context.hpp"
-        "Engine.cpp"
-        "Engine.hpp"
         "Exports.cpp"
         "Exports.hpp"
-        "Run.cpp"
-        "Run.hpp"
-        "Timer.cpp"
         "Timer.hpp"
 )
 

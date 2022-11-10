@@ -16,8 +16,6 @@
 ///
 ///
 
-#include <Sage/Core/Run.hpp>
-
-extern "C" int SDL_main(int argc, char** argv) {
-    return SageCoreEngineRun(argc, argv);
+auto main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) -> int {
+    return 0;
 }
